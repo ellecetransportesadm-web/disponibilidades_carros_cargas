@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELLECE LOGÍSTICA - OPERAÇÃO INTEGRADA</title>
+    <style>
+        :root {
+            --bg-color: #050914;
+            --panel-bg: #0c1322;
+            --panel-sec: #131c2e;
+            --neon-cyan: #FFAA00;   
+            --neon-blue: #FFC400;   
+            --neon-red: #ff0055;
+            --neon-green: #39ff14;
+            --neon-orange: #ff9f43;
+            --text-main: #e2e8f0;
+            --border-glow: 0 0 10px rgba(255, 170, 0, 0.25);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .login-container {
+            display: none;
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: var(--border-glow);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        h2, h3 {
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 0;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+            text-align: left;
+            position: relative;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #162032;
+            border: 1px solid #23324c;
+            border-radius: 5px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+            text-transform: uppercase; 
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
+        }
+
+        select option {
+            background: var(--panel-bg);
+            color: #fff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-cyan));
+            border: none;
+            border-radius: 5px;
+            color: #050914;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: var(--border-glow);
+            transition: all 0.2s;
+        }
+
+        button:hover { filter: brightness(1.2); }
+        button.btn-bloqueado {
+            background: var(--neon-red) !important;
+            color: #fff !important;
+            box-shadow: 0 0 12px rgba(255, 0, 85, 0.5) !important;
+            cursor: not-allowed !important;
+        }
+
+        .workspace-container {
+            display: none;
+            width: 100%;
+            max-width: 1350px;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .top-section {
+            display: grid;
+            grid-template-columns: 1.6fr 1.4fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid #1e2d4a;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .input-disabled {
+            background: #090e1a;
+            color: var(--neon-cyan);
+            cursor: not-allowed;
+        }
+
+        .busca-sugestoes-wrapper { position: relative; }
+        .lista-sugestoes {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--panel-sec);
+            border: 1px solid var(--neon-blue);
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+            border-radius: 0 0 5px 5px;
+            display: none;
+            text-transform: uppercase;
+        }
+        .lista-sugestoes div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #162032;
+            font-size: 0.85rem;
+        }
+        .lista-sugestoes div:hover, .lista-sugestoes div.active {
+            background: rgba(255, 170, 0, 0.2);
+            color: var(--neon-cyan);
+        }
+
+        .resumo-status-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .card-status {
+            background: var(--panel-sec);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #1e2d4a;
+        }
+        .card-status .num { font-size: 1.4rem; font-weight: bold; display: block; margin-top: 2px;}
+        .card-status.disponivel .num { color: var(--neon-green); }
+        .card-status.programado .num { color: var(--neon-red); }
+        .card-status.restrito .num { color: var(--neon-orange); }
+        .card-status label { font-size: 0.65rem; color: #718096; text-align: center; font-weight: bold;}
+
+        .frota-list {
+            max-height: 520px;
+            overflow-y: auto;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        .frota-item {
+            background: var(--panel-sec);
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .frota-item.indisponivel {
+            border-left: 4px solid var(--neon-red);
+            opacity: 0.85;
+        }
+
+        .frota-item.bloqueado-manual {
+            border-left: 4px solid var(--neon-orange);
+            opacity: 0.9;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-livre { background: rgba(57, 255, 20, 0.15); color: var(--neon-green); }
+        .badge-ocupado { background: rgba(255, 0, 85, 0.15); color: var(--neon-red); }
+        .badge-bloqueio { background: rgba(255, 159, 67, 0.15); color: var(--neon-orange); }
+
+        .btn-liberar-link {
+            display: block;
+            font-size: 0.65rem;
+            color: #ff9f43;
+            text-decoration: underline;
+            margin-top: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: right;
+        }
+        .btn-liberar-link:hover { color: #fff; }
+        .btn-liberar-vermelho { color: #ff7675 !important; }
+
+        .table-wrapper {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid #1e2d4a;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+            text-transform: uppercase; 
+        }
+
+        th {
+            background: var(--panel-sec);
+            color: var(--neon-cyan);
+            padding: 12px;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #1e2d4a;
+        }
+
+        td { padding: 10px 12px; border-bottom: 1px solid #162032; }
+        tr:hover { background: rgba(255, 170, 0, 0.03); }
+
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            border-radius: 3px;
+            width: auto;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .btn-edit { background: linear-gradient(45deg, #0072ff, #00c6ff); color: white; }
+        .btn-del { background: var(--neon-red); color: white; box-shadow: none; }
+
+        .status-display {
+            grid-column: span 2;
+            background: rgba(255, 170, 0, 0.03);
+            border: 1px solid var(--neon-green);
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--neon-green);
+            text-transform: uppercase;
+        }
+
+        .status-danger { background: rgba(255, 0, 85, 0.06); border: 1px solid var(--neon-red); color: var(--neon-red); }
+        .status-warning { background: rgba(255, 159, 67, 0.06); border: 1px solid var(--neon-orange); color: var(--neon-orange); }
+        
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .btn-logout {
+            width: auto;
+            padding: 8px 15px;
+            background: #2d3748;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            box-shadow: none;
+        }
+        .filtros-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            align-items: flex-end;
+        }
+
+        .painel-bloqueio {
+            margin-top: 15px;
+            border-top: 1px dashed #1e2d4a;
+            padding-top: 15px;
+        }
+
+        #areaImpressaoOrdem { display: none; }
+
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+                font-family: Arial, sans-serif;
+                display: block !important;
+                min-height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .login-container, .workspace-container, #telaLogin, #workspace {
+                display: none !important;
+            }
+            #areaImpressaoOrdem {
+                display: block !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            .print-block {
+                page-break-after: always;
+                box-sizing: border-box;
+                padding: 30px;
+            }
+            .print-block:last-child {
+                page-break-after: avoid;
+            }
+            .print-header {
+                text-align: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            .print-titulo {
+                font-size: 15pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 5px 0;
+            }
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+            .print-table td, .print-table th {
+                border: 1px solid #000 !important;
+                padding: 8px 12px !important;
+                color: #000 !important;
+                font-size: 10pt !important;
+                text-align: left;
+            }
+            .print-assinatura {
+                margin-top: 50px;
+                display: flex;
+                justify-content: space-around;
+                text-align: center;
+            }
+            .linha-assinatura {
+                border-top: 1px solid #000;
+                width: 250px;
+                padding-top: 5px;
+                font-size: 10pt;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container" id="telaLogin">
+        <h2>Nexus Auth</h2>
+        <div class="input-group"><label>Operador</label><input type="text" id="loginUser" placeholder="USUÁRIO"></div>
+        <div class="input-group"><label>Chave</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+        <button onclick="realizarLogin()">Acessar Terminal</button>
+    </div>
+
+    <div class="workspace-container" id="workspace">
+        <div class="header-main">
+            <h2>ELLECE LOGÍSTICA - TERMINAL OPERACIONAL</h2>
+            <button class="btn-logout" onclick="realizarLogout()">Encerrar Sessão</button>
+        </div>
+
+        <div class="top-section">
+            <div class="panel">
+                <h3 id="formTitulo">Programação Ativa</h3>
+                <div class="grid-inputs">
+                    
+                    <div class="input-group">
+                        <label>DT</label>
+                        <input type="text" id="formDt" placeholder="DIGITE O NÚMERO DA DT">
+                    </div>
+
+                    <div class="input-group busca-sugestoes-wrapper">
+                        <label>Destino (Município / Rota)</label>
+                        <input type="text" id="formDestino" placeholder="DIGITE O DESTINO..." oninput="filtrarPesquisaDestino()" onkeydown="navegarSugestoes(event, 'caixaSugestoesDestino')" autocomplete="off">
+                        <div class="lista-sugestoes" id="caixaSugestoesDestino"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Depositante</label>
+                        <select id="formDepositante">
+                            <option value="">Carregando depositantes...</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group"><label>Cliente</label><input type="text" id="formCliente"></div>
+                    
+                    <div class="input-group">
+                        <label>Origem (Saída)</label>
+                        <select id="formOrigem">
+                            <option value="">-- SELECIONE A ORIGEM --</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Agendamento</label>
+                        <input type="datetime-local" id="formAgendamento" onchange="validarRestricoesFormulario()">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Tipo de Carga</label>
+                        <select id="formTipoCarga" onchange="alternarEstadoCampoPallets()">
+                            <option value="BATIDA">CARGA BATIDA</option>
+                            <option value="PALETIZADA">CARGA PALETIZADA</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Quantidade de Pallets</label>
+                        <input type="number" id="formPallets" value="0" disabled oninput="validarRestricoesFormulario()">
+                    </div>
+
+                    <div class="input-group"><label>Volume</label><input type="number" id="formVolume"></div>
+                    
+                    <div class="input-group busca-sugestoes-wrapper">
+                        <label>Placa (Pesquise ou Digite)</label>
+                        <input type="text" id="formPlaca" placeholder="DIGITE PARA FILTRAR..." oninput="filtrarPesquisaPlaca()" onkeydown="navegarSugestoes(event, 'caixaSugestoesPlaca')" autocomplete="off">
+                        <div class="lista-sugestoes" id="caixaSugestoesPlaca"></div>
+                    </div>
+
+                    <div class="input-group"><label>Peso (KG)</label><input type="number" id="formPeso" oninput="validarRestricoesFormulario()"></div>
+                    <div class="input-group"><label>M³</label><input type="number" id="formM3" step="0.01" oninput="validarRestricoesFormulario()"></div>
+                    
+                    <div class="input-group"><label>Tipo</label><input type="text" id="formTipo" class="input-disabled" readonly></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Motorista</label><input type="text" id="formMotorista" class="input-disabled" readonly></div>
+                    
+                    <input type="hidden" id="formCpf">
+                    <input type="hidden" id="formTelefone">
+
+                    <div class="status-display" id="monitorStatus">AGUARDANDO LEITURA DE PLACA...</div>
+                    
+                    <div style="grid-column: span 2; display: flex; gap: 10px;">
+                        <button id="btnTransmitir" onclick="salvarProgramacao()">Gravar Dados</button>
+                        <button id="btnImprimir" style="background: linear-gradient(45deg, #2b6cb0, #3182ce); color:white;" onclick="gerarEImprimirOrdemIndividual()">Imprimir Ordem</button>
+                        <button id="btnCancelarEdicao" style="background:#4a5568; color:white; display:none;" onclick="cancelarEdicao()">Cancelar Ajuste</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h3>Monitor de Disponibilidade da Frota</h3>
+                    
+                    <div class="resumo-status-container">
+                        <div class="card-status disponivel">
+                            <label>Disponíveis %</label>
+                            <span class="num" id="indicadorDisponivel">0%</span>
+                        </div>
+                        <div class="card-status programado">
+                            <label>Programados %</label>
+                            <span class="num" id="indicadorProgramado">0%</span>
+                        </div>
+                        <div class="card-status restrito">
+                            <label>Restrições %</label>
+                            <span class="num" id="indicadorRestrito">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 8px;">
+                        <input type="text" id="txtFiltroListaFrota" placeholder="🔍 Filtrar lista de frotas..." oninput="renderizarFrota()" style="padding: 6px; font-size: 0.8rem;">
+                    </div>
+
+                    <div class="frota-list" id="listaFrota"></div>
+                </div>
+
+                <div class="painel-bloqueio">
+                    <h3>Restrição Operacional Manual</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr 0.8fr; gap: 8px;">
+                        <input type="text" id="blockPlaca" placeholder="PLACA" style="font-size: 0.8rem; padding: 8px;">
+                        <select id="blockMotivo" style="font-size: 0.8rem; padding: 8px;">
+                            <option value="MANUTENÇÃO">MANUTENÇÃO</option>
+                            <option value="TRAVADO NO CLIENTE">TRAVADO NO CLIENTE</option>
+                            <option value="PROBLEMA PESSOAL">PROBLEMA PESSOAL</option>
+                        </select>
+                        <button onclick="alternarBloqueioManual()" style="padding: 8px; font-size: 0.75rem; background: linear-gradient(45deg, var(--neon-orange), #ff7675); color: #fff;">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Consultas / Central de Ajustes</h3>
+            <div class="filtros-container">
+                <div class="input-group" style="max-width:160px; margin-bottom:0;">
+                    <label>Filtrar por Data</label>
+                    <input type="date" id="filtroData" onchange="filtrarTabela()">
+                </div>
+                <div class="input-group" style="flex:1; margin-bottom:0;">
+                    <label>Busca Textual</label>
+                    <input type="text" id="txtFiltro" placeholder="Filtrar por Placa, Cliente, DT..." oninput="filtrarTabela()">
+                </div>
+                
+                <div class="input-group" style="max-width:90px; margin-bottom:0;">
+                    <label>Da Ordem Nº</label>
+                    <input type="number" id="printLoteDe" min="1" placeholder="1">
+                </div>
+                <div class="input-group" style="max-width:90px; margin-bottom:0;">
+                    <label>Até Ordem Nº</label>
+                    <input type="number" id="printLoteAte" min="1" placeholder="10">
+                </div>
+                <button id="btnImprimirLote" style="width:auto; padding:10px 15px; background:linear-gradient(45deg, #10b981, #059669); color:white; font-size:0.8rem;" onclick="dispararImpressaoLote()">Imprimir Lote</button>
+            </div>
+
+            <div class="table-wrapper" style="margin-top: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Nº Ref</th><th>Data</th><th>Agendamento</th><th>DT</th><th>Cliente</th><th>Placa</th><th>Motorista</th><th>Origem</th><th>Destino</th><th>Tipo Carga</th><th>Pallets</th><th>Peso</th><th>M³</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="areaImpressaoOrdem"></div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycbwF5EC8suVcsQBzch6b3OvAWqJd-YVBvdJoti_KqPySwApdwCq9TG0_XtQSjH3Y4ZXE-Q/exec";
+
+        let limitePesoCaminhao = 0;
+        let limiteM3Caminhao = 0;
+        let limitePalletsCaminhao = 0; 
+        let cacheFrota = [];
+        let cacheProgramacoes = [];
+        let cacheRotasDestino = []; 
+        let cacheFiltradoAtual = []; 
+        let modoEdicao = false;
+        let indiceFocoSugestao = -1;
+        
+        let bloqueiosManuais = JSON.parse(localStorage.getItem("nexus_bloqueios_manuais")) || {};
+        let liberacoesForçadas = JSON.parse(localStorage.getItem("nexus_liberacoes_forcadas")) || [];
+
+        window.onload = function() {
+            document.getElementById('filtroData').valueAsDate = new Date();
+            const logado = localStorage.getItem("nexus_logado");
+            if (logado === "true") {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('workspace').style.display = 'flex';
+                carregarDadosIniciais();
+            } else {
+                document.getElementById('telaLogin').style.display = 'block';
+            }
+            document.addEventListener("click", function (e) {
+                if (e.target.id !== "formPlaca") document.getElementById('caixaSugestoesPlaca').style.display = "none";
+                if (e.target.id !== "formDestino") document.getElementById('caixaSugestoesDestino').style.display = "none";
+            });
+        };
+
+        function realizarLogin() {
+            const user = document.getElementById('loginUser').value.toUpperCase();
+            const pass = document.getElementById('loginPass').value;
+            if(!user || !pass) return;
+            localStorage.setItem("nexus_logado", "true");
+            document.getElementById('telaLogin').style.display = 'none';
+            document.getElementById('workspace').style.display = 'flex';
+            carregarDadosIniciais();
+        }
+
+        function realizarLogout() { 
+            localStorage.removeItem("nexus_logado"); 
+            location.reload(); 
+        }
+
+        function carregarDadosIniciais() {
+            fetch(URL_API)
+            .then(res => res.json())
+            .then(dados => {
+                cacheFrota = dados.frota || [];
+                cacheProgramacoes = dados.programacoes || [];
+                cacheRotasDestino = dados.rotasDestino || dados.rotas || [];
+                
+                const depositantesFixos = ["PANDURATA", "BARILLA"];
+                const selectDep = document.getElementById('formDepositante');
+                selectDep.innerHTML = '<option value="">-- SELECIONE O DEPOSITANTE --</option>';
+                depositantesFixos.forEach(dep => { selectDep.innerHTML += `<option value="${dep}">${dep}</option>`; });
+
+                const origensFixas = ["GUARULHOS", "MOGI", "EXTREMA", "RIO LARGO", "MACEIÓ"];
+                const selectOrigem = document.getElementById('formOrigem');
+                selectOrigem.innerHTML = '<option value="">-- SELECIONE A ORIGEM --</option>';
+                origensFixas.forEach(ori => { selectOrigem.innerHTML += `<option value="${ori}">${ori}</option>`; });
+
+                renderizarFrota();
+                filtrarTabela();
+            }).catch(err => console.log("Erro ao inicializar API"));
+        }
+
+        function alternarEstadoCampoPallets() {
+            const tipo = document.getElementById('formTipoCarga').value;
+            const campoPallets = document.getElementById('formPallets');
+            if (tipo === "BATIDA") {
+                campoPallets.value = "0";
+                campoPallets.disabled = true;
+            } else {
+                campoPallets.disabled = false;
+            }
+            validarRestricoesFormulario();
+        }
+
+        function navegarSugestoes(e, idCaixa) {
+            const caixa = document.getElementById(idCaixa);
+            const itens = caixa.querySelectorAll('div');
+            if (caixa.style.display !== "block" || itens.length === 0) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                indiceFocoSugestao++;
+                if (indiceFocoSugestao >= itens.length) indiceFocoSugestao = 0;
+                atualizarFocoSugestao(itens);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                indiceFocoSugestao--;
+                if (indiceFocoSugestao < 0) indiceFocoSugestao = itens.length - 1;
+                atualizarFocoSugestao(itens);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (indiceFocoSugestao > -1 && itens[indiceFocoSugestao]) {
+                    itens[indiceFocoSugestao].click();
+                }
+            }
+        }
+
+        function atualizarFocoSugestao(itens) {
+            itens.forEach((item, index) => {
+                if (index === indiceFocoSugestao) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function filtrarPesquisaDestino() {
+            const texto = document.getElementById('formDestino').value.toUpperCase().trim();
+            const caixa = document.getElementById('caixaSugestoesDestino');
+            caixa.innerHTML = "";
+            indiceFocoSugestao = -1;
+
+            if (texto.length === 0) { caixa.style.display = "none"; return; }
+            const filtradas = cacheRotasDestino.filter(r => r.destino.toUpperCase().includes(texto));
+
+            if (filtradas.length > 0) {
+                caixa.style.display = "block";
+                filtradas.forEach((r, idx) => {
+                    caixa.innerHTML += `<div onclick="selecionarDestinoBusca('${r.destino}')">${r.destino}</div>`;
+                });
+            } else { caixa.style.display = "none"; }
+        }
+
+        function selecionarDestinoBusca(destinoAlvo) {
+            document.getElementById('formDestino').value = destinoAlvo;
+            document.getElementById('caixaSugestoesDestino').style.display = "none";
+            indiceFocoSugestao = -1;
+        }
+
+        function formatarDataHoraBr(isoString) {
+            if(!isoString) return "";
+            try {
+                const d = new Date(isoString);
+                return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            } catch(e) { return isoString; }
+        }
+
+        function alternarBloqueioManual() {
+            const placa = document.getElementById('blockPlaca').value.toUpperCase().trim();
+            const motivo = document.getElementById('blockMotivo').value;
+            if(!placa) { alert("DIGITE UMA PLACA VÁLIDA."); return; }
+
+            if(bloqueiosManuais[placa]) {
+                delete bloqueiosManuais[placa];
+                alert(`RESTRIÇÃO OPERACIONAL RETIRADA DA PLACA ${placa}`);
+            } else {
+                bloqueiosManuais[placa] = motivo;
+                alert(`PLACA ${placa} MARCADA COMO INDISPONÍVEL POR: ${motivo}`);
+            }
+            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
+            document.getElementById('blockPlaca').value = "";
+            renderizarFrota();
+            validarRestricoesFormulario();
+        }
+
+        function forçarLiberacaoPlaca(placaAlvo) {
+            if(!confirm(`DESEJA LIBERAR A PLACA ${placaAlvo}?`)) return;
+            if(!liberacoesForçadas.includes(placaAlvo)) {
+                liberacoesForçadas.push(placaAlvo);
+                localStorage.setItem("nexus_liberacoes_forcadas", JSON.stringify(liberacoesForçadas));
+            }
+            renderizarFrota();
+            validarRestricoesFormulario();
+        }
+
+        // =====================================================================
+        // FUNÇÃO CORRIGIDA: os contadores agora só somam veículos que passaram
+        // no filtro de texto, garantindo que os indicadores de % sejam precisos.
+        // =====================================================================
+        function renderizarFrota() {
+            const container = document.getElementById('listaFrota');
+            container.innerHTML = "";
+            const agora = new Date().getTime();
+            const DOZE_HORAS_MS = 12 * 60 * 60 * 1000;
+
+            const filtroTextoLista = document.getElementById('txtFiltroListaFrota').value.toUpperCase().trim();
+
+            let contDisponivel = 0;
+            let contProgramado = 0;
+            let contRestrito = 0;
+
+            cacheFrota.forEach(v => {
+                const placaNorm = v.placa.toUpperCase().trim();
+                const motoristaNorm = v.motorista.toUpperCase().trim();
+                const opNorm = (v.operacao || "VENDA").toUpperCase().trim();
+
+                // FILTRO PRIMEIRO: veículos que não batem são completamente ignorados
+                if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista)) {
+                    return;
+                }
+
+                let statusReservado = false;
+                let maisDeDozeHoras = false;
+                let stringAgendamento = "";
+
+                const progAtiva = cacheProgramacoes.find(p => p.placa.toUpperCase().trim() === placaNorm && p.agendamento);
+
+                if (progAtiva) {
+                    const tempoAgendado = new Date(progAtiva.agendamento).getTime();
+                    stringAgendamento = formatarDataHoraBr(progAtiva.agendamento);
+                    if ((agora - tempoAgendado) < DOZE_HORAS_MS) statusReservado = true;
+                    else maisDeDozeHoras = true;
+                }
+
+                // CONTADORES: só chegam aqui veículos que passaram no filtro acima
+                if (bloqueiosManuais[placaNorm]) contRestrito++;
+                else if ((statusReservado || maisDeDozeHoras) && !liberacoesForçadas.includes(placaNorm)) contProgramado++;
+                else contDisponivel++;
+
+                let itemClass = "";
+                let badgeHtml = "";
+
+                if (bloqueiosManuais[placaNorm]) {
+                    itemClass = "bloqueado-manual";
+                    badgeHtml = `
+                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                            <span class="badge badge-bloqueio">${bloqueiosManuais[placaNorm]}</span>
+                            <span class="btn-liberar-link" onclick="document.getElementById('blockPlaca').value='${placaNorm}'; alternarBloqueioManual();">[Liberar]</span>
+                        </div>`;
+                } 
+                else if (statusReservado && !liberacoesForçadas.includes(placaNorm)) {
+                    itemClass = "indisponivel";
+                    badgeHtml = `<span class="badge badge-ocupado">RESERVADO (${stringAgendamento})</span>`;
+                } 
+                else if (maisDeDozeHoras && !liberacoesForçadas.includes(placaNorm)) {
+                    itemClass = "indisponivel";
+                    badgeHtml = `
+                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                            <span class="badge badge-ocupado">> 12H DESDE AGEND.</span>
+                            <span class="btn-liberar-link btn-liberar-vermelho" onclick="forçarLiberacaoPlaca('${placaNorm}')">[Disponibilizar Carro]</span>
+                        </div>`;
+                } 
+                else {
+                    badgeHtml = `<span class="badge badge-livre">Disponível</span>`;
+                }
+
+                container.innerHTML += `
+                    <div class="frota-item ${itemClass}">
+                        <div>
+                            <strong>${v.placa}</strong> - ${v.tipo} <span style="color:var(--neon-blue); font-size:0.75rem; font-weight:bold;">(${opNorm})</span><br>
+                            <span style="color:#718096; font-size:0.75rem;">${v.motorista}</span>
+                        </div>
+                        <div style="text-align:right;">
+                            ${badgeHtml}
+                            <div style="font-family:monospace; color:var(--neon-cyan); font-size:0.75rem; margin-top:4px;">${v.pesoMax}KG | ${v.m3Max}M³ | ${v.palletsMax || 0}PL</div>
+                        </div>
+                    </div>`;
+            });
+
+            // Total é a soma dos próprios contadores (apenas veículos filtrados)
+            const totalFiltrado = contDisponivel + contProgramado + contRestrito;
+
+            if (totalFiltrado > 0) {
+                document.getElementById('indicadorDisponivel').innerHTML = Math.round((contDisponivel / totalFiltrado) * 100) + "%<br><small>(" + contDisponivel + ")</small>";
+                document.getElementById('indicadorProgramado').innerHTML = Math.round((contProgramado / totalFiltrado) * 100) + "%<br><small>(" + contProgramado + ")</small>";
+                document.getElementById('indicadorRestrito').innerHTML = Math.round((contRestrito / totalFiltrado) * 100) + "%<br><small>(" + contRestrito + ")</small>";
+            } else {
+                document.getElementById('indicadorDisponivel').innerHTML = "0%<br><small>(0)</small>";
+                document.getElementById('indicadorProgramado').innerHTML = "0%<br><small>(0)</small>";
+                document.getElementById('indicadorRestrito').innerHTML = "0%<br><small>(0)</small>";
+            }
+        }
+
+        function filtrarPesquisaPlaca() {
+            const texto = document.getElementById('formPlaca').value.toUpperCase().trim();
+            const caixa = document.getElementById('caixaSugestoesPlaca');
+            caixa.innerHTML = "";
+            indiceFocoSugestao = -1;
+            if (texto.length === 0) { caixa.style.display = "none"; limparCamposAutomaticos(); return; }
+
+            const filtradas = cacheFrota.filter(v => v.placa.includes(texto));
+            if (filtradas.length > 0) {
+                caixa.style.display = "block";
+                filtradas.forEach(v => {
+                    let opExibe = v.operacao || "VENDA";
+                    caixa.innerHTML += `<div onclick="selecionarPlacaBusca('${v.placa}')"><strong>${v.placa}</strong> - ${v.motorista} <span style="color:var(--neon-cyan); font-weight:bold;">[${opExibe}]</span></div>`;
+                });
+            } else { caixa.style.display = "none"; document.getElementById('monitorStatus').className = "status-display status-danger"; document.getElementById('monitorStatus').innerText = "PLACA NÃO LOCALIZADA."; }
+        }
+
+        function selecionarPlacaBusca(placaAlvo) {
+            document.getElementById('formPlaca').value = placaAlvo.toUpperCase();
+            document.getElementById('caixaSugestoesPlaca').style.display = "none";
+            indiceFocoSugestao = -1;
+            
+            fetch(URL_API, { method: "POST", body: JSON.stringify({ acao: "buscarPlaca", placa: placaAlvo }) })
+            .then(res => res.json())
+            .then(dados => {
+                if(dados.encontrado) {
+                    document.getElementById('formMotorista').value = dados.motorista.toUpperCase();
+                    document.getElementById('formCpf').value = dados.cpf;
+                    document.getElementById('formTelefone').value = dados.telefone;
+                    document.getElementById('formTipo').value = dados.tipo.toUpperCase(); 
+                    limitePesoCaminhao = dados.pesoMax;
+                    limiteM3Caminhao = dados.m3Max;
+                    limitePalletsCaminhao = dados.palletsMax || 0; 
+                    
+                    document.getElementById('monitorStatus').className = "status-display";
+                    document.getElementById('monitorStatus').innerText = `TETO VEÍCULO (${(dados.operacao || 'VENDA').toUpperCase()}): ${limitePesoCaminhao} KG / ${limiteM3Caminhao} M³ / ${limitePalletsCaminhao} PALLETS`;
+                    
+                    validarRestricoesFormulario();
+                }
+            });
+        }
+
+        function validarRestricoesFormulario() {
+            const monitor = document.getElementById('monitorStatus');
+            const botao = document.getElementById('btnTransmitir');
+            
+            const placa = document.getElementById('formPlaca').value.toUpperCase().trim();
+            const dtAtual = document.getElementById('formDt').value.toUpperCase().trim();
+            const agendamentoForm = document.getElementById('formAgendamento').value;
+            const peso = parseFloat(document.getElementById('formPeso').value) || 0;
+            const m3 = parseFloat(document.getElementById('formM3').value) || 0;
+            
+            const tipoCarga = document.getElementById('formTipoCarga').value;
+            const palletsDigitados = parseFloat(document.getElementById('formPallets').value) || 0;
+
+            if (placa && bloqueiosManuais[placa]) {
+                monitor.className = "status-display status-warning";
+                monitor.innerText = `BLOQUEIO MANUAL: ESTE CARRO ESTÁ INDISPONÍVEL POR MOTIVO DE (${bloqueiosManuais[placa]}).`;
+                botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: OPERAÇÃO RESTRITA";
+                return;
+            }
+
+            if (limitePesoCaminhao > 0 || limiteM3Caminhao > 0) {
+                if (peso > limitePesoCaminhao || m3 > limiteM3Caminhao) {
+                    monitor.className = "status-display status-danger";
+                    monitor.innerText = "VEÍCULO NÃO SUPORTA ESSA CARGA! LIMITE DE CAPACIDADE EXCEDIDO.";
+                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: EXCESSO DE CARGA";
+                    return;
+                }
+            }
+
+            if (tipoCarga === "PALETIZADA" && placa) {
+                if (palletsDigitados > limitePalletsCaminhao) {
+                    monitor.className = "status-display status-danger";
+                    monitor.innerText = `VEÍCULO NÃO SUPORTA! DIGITADO: ${palletsDigitados} PL / LIMITE DA PLACA: ${limitePalletsCaminhao} PL.`;
+                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: EXCESSO DE PALLETS";
+                    return;
+                }
+            }
+
+            if (placa && agendamentoForm) {
+                const tempoForm = new Date(agendamentoForm).getTime();
+                const JANELA_PROIBIDA_MS = 4 * 60 * 60 * 1000;
+                const DOZE_HORAS_MS = 12 * 60 * 60 * 1000;
+                const agora = new Date().getTime();
+
+                const conflito = cacheProgramacoes.find(p => {
+                    if (modoEdicao && p.dt.toUpperCase().trim() === dtAtual) return false;
+                    if (p.placa.toUpperCase().trim() === placa && p.agendamento) {
+                        const tempoExistente = new Date(p.agendamento).getTime();
+                        
+                        if (liberacoesForçadas.includes(placa)) return false;
+                        if ((agora - tempoExistente) > DOZE_HORAS_MS) return false;
+
+                        return Math.abs(tempoForm - tempoExistente) < JANELA_PROIBIDA_MS;
+                    }
+                    return false;
+                });
+
+                if (conflito) {
+                    let horaConflito = formatarDataHoraBr(conflito.agendamento);
+                    monitor.className = "status-display status-danger";
+                    monitor.innerText = `BLOQUEIO: ESTE VEÍCULO JÁ TEM PROGRAMAÇÃO AGENDADA NESSE PERÍODO (${horaConflito}).`;
+                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: CONFLITO DE HORÁRIO";
+                    return;
+                }
+            }
+
+            if (placa) {
+                monitor.className = "status-display"; 
+                monitor.innerText = `VEÍCULO DISPONÍVEL E CAPACIDADE COMPATÍVEL`;
+                botao.disabled = false; botao.classList.remove("btn-bloqueado"); 
+                botao.innerText = modoEdicao ? "CONFIRMAR ALTERAÇÕES" : "GRAVAR PROGRAMAÇÃO";
+            }
+        }
+
+        function salvarProgramacao() {
+            const hoje = new Date();
+            const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+            const placaForm = document.getElementById('formPlaca').value.toUpperCase().trim();
+            
+            const payload = {
+                acao: "salvar", data: dataAtual,
+                depositante: document.getElementById('formDepositante').value.toUpperCase(),
+                cliente: document.getElementById('formCliente').value.toUpperCase(),
+                origem: document.getElementById('formOrigem').value.toUpperCase(),
+                destino: document.getElementById('formDestino').value.toUpperCase(),
+                dt: document.getElementById('formDt').value.toUpperCase(),
+                agendamento: document.getElementById('formAgendamento').value,
+                volume: document.getElementById('formVolume').value,
+                placa: placaForm,
+                peso: document.getElementById('formPeso').value,
+                m3: document.getElementById('formM3').value,
+                motorista: document.getElementById('formMotorista').value.toUpperCase(),
+                cpf: document.getElementById('formCpf').value,
+                telefone: document.getElementById('formTelefone').value,
+                tipo: document.getElementById('formTipo').value.toUpperCase(),
+                tipoCarga: document.getElementById('formTipoCarga').value,
+                qtdPallets: document.getElementById('formPallets').value
+            };
+
+            if(!payload.dt || !payload.depositante || !payload.placa) { alert("POR FAVOR, PREENCHA OS CAMPOS ESSENCIAIS (DT, DEPOSITANTE E PLACA)."); return; }
+
+            fetch(URL_API, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+            .then(() => {
+                if(liberacoesForçadas.includes(placaForm)){
+                    liberacoesForçadas = liberacoesForçadas.filter(item => item !== placaForm);
+                    localStorage.setItem("nexus_liberacoes_forcadas", JSON.stringify(liberacoesForçadas));
+                }
+                alert("OPERAÇÃO REALIZADA COM SUCESSO!");
+                cancelarEdicao(); 
+                carregarDadosIniciais();
+            });
+        }
+
+        function construirHtmlBlocoOrdem(p) {
+            let agendamentoFormatado = formatarDataHoraBr(p.agendamento);
+            let exibeTipoCarga = p.tipoCarga || "BATIDA";
+            let exibePallets = (exibeTipoCarga === "BATIDA") ? "CARGA BATIDA" : (p.qtdPallets || "0") + " PALLETS";
+            let cpfCondutor = p.cpf || "NÃO INFORMADO";
+            let telCondutor = p.telefone || "NÃO INFORMADO";
+
+            return `
+                <div class="print-block">
+                    <div class="print-header">
+                        <div style="font-size: 22pt; font-weight: bold; letter-spacing: 2px;">ELLECE LOGISTICA E TRANSPORTE</div>
+                        <div class="print-titulo">Ordem de Coleta e Instrução de Transporte</div>
+                        <div style="font-size: 9pt; margin-top: 5px;">Processado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
+                    </div>
+                    <table class="print-table">
+                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">1. CONTROLE E PROGRAMAÇÃO</th></tr>
+                        <tr>
+                            <td style="width: 20%;"><strong>DATA DA PROGRAMAÇÃO:</strong></td>
+                            <td style="width: 30%; font-weight: bold;">${p.data}</td>
+                            <td style="width: 20%;"><strong>NÚMERO DA DT:</strong></td>
+                            <td style="width: 30%; font-size: 13pt; font-weight: bold;">${p.dt.toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DEPOSITANTE/CLIENTE:</strong></td>
+                            <td>${p.depositante.toUpperCase()} / ${p.cliente.toUpperCase()}</td>
+                            <td><strong>AGENDAMENTO FLUXO:</strong></td>
+                            <td>${agendamentoFormatado}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ORIGEM COLETA:</strong></td>
+                            <td>${p.origem.toUpperCase()}</td>
+                            <td><strong>DESTINO / ROTA:</strong></td>
+                            <td>${p.destino.toUpperCase()}</td>
+                        </tr>
+                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">2. IDENTIFICAÇÃO DO EQUIPAMENTO E CONDUTOR</th></tr>
+                        <tr>
+                            <td><strong>PLACA VEÍCULO:</strong></td>
+                            <td style="font-size: 11pt; font-weight: bold;">${p.placa.toUpperCase()}</td>
+                            <td><strong>TIPO DE VEÍCULO:</strong></td>
+                            <td>${p.tipo.toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NOME DO MOTORISTA:</strong></td>
+                            <td colspan="3" style="font-weight: bold;">${p.motorista.toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CPF MOTORISTA:</strong></td>
+                            <td>${cpfCondutor}</td>
+                            <td><strong>TELEFONE MOTORISTA:</strong></td>
+                            <td>${telCondutor}</td>
+                        </tr>
+                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">3. DADOS DE CUBAGEM E PESO DA CARGA</th></tr>
+                        <tr>
+                            <td><strong>PESO TOTAL (KG):</strong></td>
+                            <td style="font-weight: bold;">${p.peso} KG</td>
+                            <td><strong>METRAGEM CÚBICA (M³):</strong></td>
+                            <td style="font-weight: bold;">${p.m3} M³</td>
+                        </tr>
+                        <tr>
+                            <td><strong>QUANTIDADE PALLETS / TIPO:</strong></td>
+                            <td colspan="3"><strong>${exibePallets}</strong> (VOLUME INFO: ${p.volume || 0} UN)</td>
+                        </tr>
+                    </table>
+                    <div style="margin-top: 25px; font-size: 8.5pt; line-height: 1.4; border: 1px solid #000; padding: 10px;">
+                        <strong>TERMO DE RESPONSABILIDADE:</strong> O condutor declara ciência dos dados operacionais e compromete-se a efetuar o tráfego de acordo com as diretrizes de gerenciamento de risco estabelecidas pela Ellece Logística. Eventuais avarias de pátio devem ser notificadas antes da amarração final da carga.
+                    </div>
+                    <div class="print-assinatura">
+                        <div class="linha-assinatura">Expedição Interna<br>ELLECE LOGISTICA</div>
+                        <div class="linha-assinatura">Assinatura do Motorista<br>Concordância de Coleta</div>
+                    </div>
+                </div>`;
+        }
+
+        function gerarEImprimirOrdemIndividual() {
+            const dtForm = document.getElementById('formDt').value.toUpperCase().trim();
+            if(!dtForm) { alert("PREENCHA AO MENOS A DT PARA IMPRIMIR AVULSO."); return; }
+
+            const mockObjeto = {
+                data: new Date().toLocaleDateString('pt-BR'),
+                dt: dtForm,
+                depositante: document.getElementById('formDepositante').value || "N/A",
+                cliente: document.getElementById('formCliente').value || "N/A",
+                origem: document.getElementById('formOrigem').value || "N/A",
+                destino: document.getElementById('formDestino').value || "N/A",
+                agendamento: document.getElementById('formAgendamento').value,
+                placa: document.getElementById('formPlaca').value || "N/A",
+                tipo: document.getElementById('formTipo').value || "N/A",
+                motorista: document.getElementById('formMotorista').value || "N/A",
+                cpf: document.getElementById('formCpf').value,
+                telefone: document.getElementById('formTelefone').value,
+                peso: document.getElementById('formPeso').value || "0",
+                m3: document.getElementById('formM3').value || "0",
+                tipoCarga: document.getElementById('formTipoCarga').value,
+                qtdPallets: document.getElementById('formPallets').value,
+                volume: document.getElementById('formVolume').value
+            };
+
+            document.getElementById('areaImpressaoOrdem').innerHTML = construirHtmlBlocoOrdem(mockObjeto);
+            window.print();
+        }
+
+        function dispararImpressaoLote() {
+            const deNum = parseInt(document.getElementById('printLoteDe').value);
+            const ateNum = parseInt(document.getElementById('printLoteAte').value);
+
+            if(isNaN(deNum) || isNaN(ateNum)) { alert("POR FAVOR, INFORME O INTERVALO SEQUENCIAL CORRETO (DE / ATÉ)."); return; }
+            if(deNum > ateNum) { alert("O NÚMERO INICIAL NÃO PODE SER MAIOR QUE O NÚMERO FINAL."); return; }
+
+            let htmlAcumulado = ""; let encontrados = 0;
+
+            for (let i = deNum - 1; i < ateNum; i++) {
+                if (cacheFiltradoAtual[i]) {
+                    htmlAcumulado += construirHtmlBlocoOrdem(cacheFiltradoAtual[i]);
+                    encontrados++;
+                }
+            }
+
+            if(encontrados === 0) { alert("NENHUMA PROGRAMAÇÃO FOI ENCONTRADA NESSE INTERVALO DE REFERÊNCIA."); return; }
+            document.getElementById('areaImpressaoOrdem').innerHTML = htmlAcumulado;
+            window.print();
+        }
+
+        function prepararEdicao(dtChave) {
+            const registro = cacheProgramacoes.find(p => p.dt === dtChave);
+            if(!registro) return;
+
+            modoEdicao = true;
+            document.getElementById('formTitulo').innerText = "AJUSTAR PROGRAMAÇÃO (EDITANDO)";
+            document.getElementById('formDt').value = registro.dt.toUpperCase();
+            document.getElementById('formDt').disabled = true;
+            document.getElementById('formDepositante').value = registro.depositante.toUpperCase();
+            document.getElementById('formCliente').value = registro.cliente.toUpperCase();
+            document.getElementById('formOrigem').value = registro.origem.toUpperCase();
+            document.getElementById('formDestino').value = registro.destino.toUpperCase();
+            document.getElementById('formVolume').value = registro.volume;
+            document.getElementById('formPeso').value = registro.peso;
+            document.getElementById('formM3').value = registro.m3;
+            document.getElementById('formAgendamento').value = registro.agendamento;
+            document.getElementById('formPlaca').value = registro.placa.toUpperCase();
+            
+            document.getElementById('formTipoCarga').value = registro.tipoCarga || "BATIDA";
+            document.getElementById('formPallets').value = registro.qtdPallets || "0";
+            alternarEstadoCampoPallets();
+
+            selecionarPlacaBusca(registro.placa);
+
+            document.getElementById('btnCancelarEdicao').style.display = "inline-block";
+            document.getElementById('btnTransmitir').innerText = "CONFIRMAR ALTERAÇÕES";
+        }
+
+        function excluirRegistro(dtChave) {
+            if(!confirm(`TEM CERTEZA QUE DESEJA DELETAR PERMANENTEMENTE A DT ${dtChave}?`)) return;
+            fetch(URL_API, { method: "POST", body: JSON.stringify({ acao: "excluir", dt: dtChave }) })
+            .then(() => { alert("DELETADO COM SUCESSO!"); carregarDadosIniciais(); });
+        }
+
+        function cancelarEdicao() {
+            modoEdicao = false; 
+            document.getElementById('formTitulo').innerText = "PROGRAMAÇÃO ATIVA";
+            document.getElementById('formDt').disabled = false; 
+            document.getElementById('btnCancelarEdicao').style.display = "none";
+            
+            document.getElementById('formDt').value = ""; 
+            document.getElementById('formDepositante').value = "";
+            document.getElementById('formCliente').value = ""; 
+            document.getElementById('formOrigem').value = "";
+            document.getElementById('formDestino').value = ""; 
+            document.getElementById('formVolume').value = "";
+            document.getElementById('formPeso').value = ""; 
+            document.getElementById('formM3').value = "";
+            document.getElementById('formAgendamento').value = ""; 
+            document.getElementById('formPlaca').value = "";
+            document.getElementById('formTipoCarga').value = "BATIDA";
+            document.getElementById('formPallets').value = "0";
+            alternarEstadoCampoPallets();
+        }
+
+        function filtrarTabela() {
+            const termo = document.getElementById('txtFiltro').value.toUpperCase().trim();
+            const dataFiltroRaw = document.getElementById('filtroData').value;
+            let dataFiltroFormato = "";
+            
+            if(dataFiltroRaw) {
+                const partes = dataFiltroRaw.split("-");
+                dataFiltroFormato = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            cacheFiltradoAtual = cacheProgramacoes.filter(p => {
+                const bateData = !dataFiltroFormato || p.data === dataFiltroFormato;
+                const bateTermo = !termo || (
+                    p.placa.toUpperCase().includes(termo) || 
+                    p.cliente.toUpperCase().includes(termo) || 
+                    p.dt.toUpperCase().includes(termo) || 
+                    p.destino.toUpperCase().includes(termo)
+                );
+                return bateData && bateTermo;
+            });
+            atualizarTabela(cacheFiltradoAtual);
+            renderizarFrota(); 
+        }
+
+        function atualizarTabela(lista) {
+            const corpo = document.getElementById('corpoTabela');
+            corpo.innerHTML = "";
+            
+            lista.forEach((p, index) => {
+                let numeroReferencia = index + 1; 
+                let exibeTipo = p.tipoCarga || "BATIDA";
+                let exibePallets = (exibeTipo === "BATIDA") ? "BATIDA" : (p.qtdPallets || "0") + " PL";
+                let horaAgendamento = formatarDataHoraBr(p.agendamento);
+
+                corpo.innerHTML += `<tr>
+                    <td><strong style="color:var(--neon-cyan);">#${numeroReferencia}</strong></td>
+                    <td>${p.data}</td>
+                    <td><strong>${horaAgendamento}</strong></td>
+                    <td><strong>${p.dt.toUpperCase()}</strong></td>
+                    <td>${p.cliente.toUpperCase()}</td>
+                    <td>${p.placa.toUpperCase()}</td>
+                    <td>${p.motorista.toUpperCase()}</td>
+                    <td>${p.origem.toUpperCase()}</td>
+                    <td>${p.destino.toUpperCase()}</td>
+                    <td>${exibeTipo}</td>
+                    <td><strong>${exibePallets}</strong></td>
+                    <td>${p.peso}</td>
+                    <td>${p.m3}</td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="prepararEdicao('${p.dt}')">EDITAR</button>
+                        <button class="btn-action btn-del" onclick="excluirRegistro('${p.dt}')">EXCLUIR</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function limparCamposAutomaticos() {
+            document.getElementById('formMotorista').value = ""; 
+            document.getElementById('formCpf').value = "";
+            document.getElementById('formTelefone').value = ""; 
+            document.getElementById('formTipo').value = "";
+            limitePesoCaminhao = 0; 
+            limiteM3Caminhao = 0;
+            limitePalletsCaminhao = 0;
+            const botao = document.getElementById('btnTransmitir');
+            botao.disabled = false; 
+            botao.classList.remove("btn-bloqueado");
+            botao.innerText = modoEdicao ? "CONFIRMAR ALTERAÇÕES" : "GRAVAR PROGRAMAÇÃO";
+            document.getElementById('monitorStatus').className = "status-display";
+            document.getElementById('monitorStatus').innerText = "AGUARDANDO LEITURA DE PLACA...";
+        }
+    </script>
+</body>
+</html>
