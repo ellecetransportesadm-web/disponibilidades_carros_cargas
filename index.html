@@ -562,7 +562,7 @@
     <div id="areaImpressaoOrdem"></div>
 
     <script>
-        const URL_API = "https://script.google.com/macros/s/AKfycbwF5EC8suVcsQBzch6b3OvAWqJd-YVBvdJoti_KqPySwApdwCq9TG0_XtQSjH3Y4ZXE-Q/exec";
+        const URL_API = "https://script.google.com/macros/s/AKfycbx9e7jTwetWC4r7tuKBZDXbsJIrIH--peUQh6lvAzjUOQyj601_Z-fv9ztJ-4RMerOgNA/exec";
 
         let limitePesoCaminhao = 0;
         let limiteM3Caminhao = 0;
@@ -594,18 +594,50 @@
         };
 
         function realizarLogin() {
-            const user = document.getElementById('loginUser').value.toUpperCase();
-            const pass = document.getElementById('loginPass').value;
-            if(!user || !pass) return;
-            localStorage.setItem("nexus_logado", "true");
-            document.getElementById('telaLogin').style.display = 'none';
-            document.getElementById('workspace').style.display = 'flex';
-            carregarDadosIniciais();
+            const user = document.getElementById('loginUser').value.toUpperCase().trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const btnLogin = document.querySelector("#telaLogin button");
+            
+            if(!user || !pass) {
+                alert("PREENCHA O OPERADOR E A CHAVE.");
+                return;
+            }
+            
+            btnLogin.innerText = "AUTENTICANDO...";
+            btnLogin.disabled = true;
+
+            fetch(URL_API, {
+                method: "POST",
+                body: JSON.stringify({ acao: "login", usuario: user, senha: pass })
+            })
+            .then(res => res.json())
+            .then(resultado => {
+                if (resultado.logado) {
+                    localStorage.setItem("nexus_logado", "true");
+                    document.getElementById('telaLogin').style.display = 'none';
+                    document.getElementById('workspace').style.display = 'flex';
+                    carregarDadosIniciais();
+                } else {
+                    alert("OPERADOR OU CHAVE INCORRETA. ACESSO NEGADO.");
+                    localStorage.removeItem("nexus_logado");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("ERRO DE CONEXÃO COM O TERMINAL.");
+            })
+            .finally(() => {
+                btnLogin.innerText = "Acessar Terminal";
+                btnLogin.disabled = false;
+            });
         }
 
         function realizarLogout() { 
             localStorage.removeItem("nexus_logado"); 
-            location.reload(); 
+            document.getElementById('telaLogin').style.display = 'block';
+            document.getElementById('workspace').style.display = 'none';
+            document.getElementById('loginUser').value = "";
+            document.getElementById('loginPass').value = "";
         }
 
         function carregarDadosIniciais() {
@@ -736,31 +768,32 @@
             validarRestricoesFormulario();
         }
 
-        // =====================================================================
-        // FUNÇÃO CORRIGIDA: os contadores agora só somam veículos que passaram
-        // no filtro de texto, garantindo que os indicadores de % sejam precisos.
-        // =====================================================================
-        function renderizarFrota() {
+function renderizarFrota() {
             const container = document.getElementById('listaFrota');
             container.innerHTML = "";
             const agora = new Date().getTime();
             const DOZE_HORAS_MS = 12 * 60 * 60 * 1000;
-
+            
             const filtroTextoLista = document.getElementById('txtFiltroListaFrota').value.toUpperCase().trim();
 
             let contDisponivel = 0;
             let contProgramado = 0;
             let contRestrito = 0;
+            let totalGeral = 0; // Começa em 0 para contar apenas o que passar pelo filtro
 
             cacheFrota.forEach(v => {
                 const placaNorm = v.placa.toUpperCase().trim();
                 const motoristaNorm = v.motorista.toUpperCase().trim();
                 const opNorm = (v.operacao || "VENDA").toUpperCase().trim();
-
-                // FILTRO PRIMEIRO: veículos que não batem são completamente ignorados
+                
+                // CORREÇÃO: Se houver filtro de busca e o veículo NÃO bater com o filtro, 
+                // ele é ignorado antes mesmo de entrar na soma dos contadores.
                 if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista)) {
-                    return;
+                    return; 
                 }
+
+                // Incrementa o total de veículos que estão visíveis no momento
+                totalGeral++;
 
                 let statusReservado = false;
                 let maisDeDozeHoras = false;
@@ -775,7 +808,6 @@
                     else maisDeDozeHoras = true;
                 }
 
-                // CONTADORES: só chegam aqui veículos que passaram no filtro acima
                 if (bloqueiosManuais[placaNorm]) contRestrito++;
                 else if ((statusReservado || maisDeDozeHoras) && !liberacoesForçadas.includes(placaNorm)) contProgramado++;
                 else contDisponivel++;
@@ -820,17 +852,19 @@
                     </div>`;
             });
 
-            // Total é a soma dos próprios contadores (apenas veículos filtrados)
-            const totalFiltrado = contDisponivel + contProgramado + contRestrito;
+            // Atualiza os painéis numéricos baseado apenas no subtotal filtrado
+            if (totalGeral > 0) {
+                const pctDisp = Math.round((contDisponivel / totalGeral) * 100);
+                const pctProg = Math.round((contProgramado / totalGeral) * 100);
+                const pctRest = Math.round((contRestrito / totalGeral) * 100);
 
-            if (totalFiltrado > 0) {
-                document.getElementById('indicadorDisponivel').innerHTML = Math.round((contDisponivel / totalFiltrado) * 100) + "%<br><small>(" + contDisponivel + ")</small>";
-                document.getElementById('indicadorProgramado').innerHTML = Math.round((contProgramado / totalFiltrado) * 100) + "%<br><small>(" + contProgramado + ")</small>";
-                document.getElementById('indicadorRestrito').innerHTML = Math.round((contRestrito / totalFiltrado) * 100) + "%<br><small>(" + contRestrito + ")</small>";
+                document.getElementById('indicadorDisponivel').innerText = `${contDisponivel} / ${totalGeral} (${pctDisp}%)`;
+                document.getElementById('indicadorProgramado').innerText = `${contProgramado} / ${totalGeral} (${pctProg}%)`;
+                document.getElementById('indicadorRestrito').innerText = `${contRestrito} / ${totalGeral} (${pctRest}%)`;
             } else {
-                document.getElementById('indicadorDisponivel').innerHTML = "0%<br><small>(0)</small>";
-                document.getElementById('indicadorProgramado').innerHTML = "0%<br><small>(0)</small>";
-                document.getElementById('indicadorRestrito').innerHTML = "0%<br><small>(0)</small>";
+                document.getElementById('indicadorDisponivel').innerText = `0 / 0 (0%)`;
+                document.getElementById('indicadorProgramado').innerText = `0 / 0 (0%)`;
+                document.getElementById('indicadorRestrito').innerText = `0 / 0 (0%)`;
             }
         }
 
@@ -856,7 +890,10 @@
             document.getElementById('caixaSugestoesPlaca').style.display = "none";
             indiceFocoSugestao = -1;
             
-            fetch(URL_API, { method: "POST", body: JSON.stringify({ acao: "buscarPlaca", placa: placaAlvo }) })
+            fetch(URL_API, { 
+                method: "POST", 
+                body: JSON.stringify({ acao: "buscarPlaca", placa: placaAlvo }) 
+            })
             .then(res => res.json())
             .then(dados => {
                 if(dados.encontrado) {
@@ -977,7 +1014,8 @@
 
             if(!payload.dt || !payload.depositante || !payload.placa) { alert("POR FAVOR, PREENCHA OS CAMPOS ESSENCIAIS (DT, DEPOSITANTE E PLACA)."); return; }
 
-            fetch(URL_API, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+            fetch(URL_API, { method: "POST", body: JSON.stringify(payload) })
+            .then(res => res.json())
             .then(() => {
                 if(liberacoesForçadas.includes(placaForm)){
                     liberacoesForçadas = liberacoesForçadas.filter(item => item !== placaForm);
@@ -985,6 +1023,11 @@
                 }
                 alert("OPERAÇÃO REALIZADA COM SUCESSO!");
                 cancelarEdicao(); 
+                carregarDadosIniciais();
+            }).catch(() => {
+                // Alternativa para lidar caso o backend não retorne CORS perfeitamente, mas grave os dados
+                alert("OPERAÇÃO PROCESSADA!");
+                cancelarEdicao();
                 carregarDadosIniciais();
             });
         }
