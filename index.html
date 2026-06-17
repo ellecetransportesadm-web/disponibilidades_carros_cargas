@@ -182,7 +182,7 @@
             border-radius: 6px;
             border: 1px solid #1e2d4a;
         }
-        .card-status .num { font-size: 1.4rem; font-weight: bold; display: block; margin-top: 2px;}
+        .card-status .num { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 2px;}
         .card-status.disponivel .num { color: var(--neon-green); }
         .card-status.programado .num { color: var(--neon-red); }
         .card-status.restrito .num { color: var(--neon-orange); }
@@ -394,8 +394,8 @@
 
     <div class="login-container" id="telaLogin">
         <h2>Nexus Auth</h2>
-        <div class="input-group"><label>Operador</label><input type="text" id="loginUser" placeholder="USUÁRIO"></div>
-        <div class="input-group"><label>Chave</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+        <div class="input-group"><label>Operador</label><input type="text" id="loginUser" placeholder="USUÁRIO" autocomplete="off"></div>
+        <div class="input-group"><label>Chave</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="off"></div>
         <button onclick="realizarLogin()">Acessar Terminal</button>
     </div>
 
@@ -488,16 +488,16 @@
                     
                     <div class="resumo-status-container">
                         <div class="card-status disponivel">
-                            <label>Disponíveis %</label>
-                            <span class="num" id="indicadorDisponivel">0%</span>
+                            <label>Disponíveis</label>
+                            <span class="num" id="indicadorDisponivel">0 / 0 (0%)</span>
                         </div>
                         <div class="card-status programado">
-                            <label>Programados %</label>
-                            <span class="num" id="indicadorProgramado">0%</span>
+                            <label>Programados</label>
+                            <span class="num" id="indicadorProgramado">0 / 0 (0%)</span>
                         </div>
                         <div class="card-status restrito">
-                            <label>Restrições %</label>
-                            <span class="num" id="indicadorRestrito">0%</span>
+                            <label>Restrições</label>
+                            <span class="num" id="indicadorRestrito">0 / 0 (0%)</span>
                         </div>
                     </div>
 
@@ -577,19 +577,27 @@
         let bloqueiosManuais = JSON.parse(localStorage.getItem("nexus_bloqueios_manuais")) || {};
         let liberacoesForçadas = JSON.parse(localStorage.getItem("nexus_liberacoes_forcadas")) || [];
 
+        // MODIFICAÇÃO CONFORME SOLICITADO: Sempre inicia em branco exigindo o login
         window.onload = function() {
-            document.getElementById('filtroData').valueAsDate = new Date();
-            const logado = localStorage.getItem("nexus_logado");
-            if (logado === "true") {
-                document.getElementById('telaLogin').style.display = 'none';
-                document.getElementById('workspace').style.display = 'flex';
-                carregarDadosIniciais();
-            } else {
-                document.getElementById('telaLogin').style.display = 'block';
+            if (document.getElementById('filtroData')) {
+                document.getElementById('filtroData').valueAsDate = new Date();
             }
+            
+            // Remove vestígios antigos e força o estado deslogado com campos vazios
+            localStorage.removeItem("nexus_logado");
+            document.getElementById('loginUser').value = "";
+            document.getElementById('loginPass').value = "";
+            
+            document.getElementById('workspace').style.display = 'none';
+            document.getElementById('telaLogin').style.display = 'block';
+            
             document.addEventListener("click", function (e) {
-                if (e.target.id !== "formPlaca") document.getElementById('caixaSugestoesPlaca').style.display = "none";
-                if (e.target.id !== "formDestino") document.getElementById('caixaSugestoesDestino').style.display = "none";
+                if (e.target.id !== "formPlaca" && document.getElementById('caixaSugestoesPlaca')) {
+                    document.getElementById('caixaSugestoesPlaca').style.display = "none";
+                }
+                if (e.target.id !== "formDestino" && document.getElementById('caixaSugestoesDestino')) {
+                    document.getElementById('caixaSugestoesDestino').style.display = "none";
+                }
             });
         };
 
@@ -768,7 +776,7 @@
             validarRestricoesFormulario();
         }
 
-function renderizarFrota() {
+        function renderizarFrota() {
             const container = document.getElementById('listaFrota');
             container.innerHTML = "";
             const agora = new Date().getTime();
@@ -779,20 +787,17 @@ function renderizarFrota() {
             let contDisponivel = 0;
             let contProgramado = 0;
             let contRestrito = 0;
-            let totalGeral = 0; // Começa em 0 para contar apenas o que passar pelo filtro
+            let totalGeral = 0; 
 
             cacheFrota.forEach(v => {
                 const placaNorm = v.placa.toUpperCase().trim();
                 const motoristaNorm = v.motorista.toUpperCase().trim();
                 const opNorm = (v.operacao || "VENDA").toUpperCase().trim();
                 
-                // CORREÇÃO: Se houver filtro de busca e o veículo NÃO bater com o filtro, 
-                // ele é ignorado antes mesmo de entrar na soma dos contadores.
                 if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista)) {
                     return; 
                 }
 
-                // Incrementa o total de veículos que estão visíveis no momento
                 totalGeral++;
 
                 let statusReservado = false;
@@ -852,7 +857,6 @@ function renderizarFrota() {
                     </div>`;
             });
 
-            // Atualiza os painéis numéricos baseado apenas no subtotal filtrado
             if (totalGeral > 0) {
                 const pctDisp = Math.round((contDisponivel / totalGeral) * 100);
                 const pctProg = Math.round((contProgramado / totalGeral) * 100);
@@ -1025,7 +1029,6 @@ function renderizarFrota() {
                 cancelarEdicao(); 
                 carregarDadosIniciais();
             }).catch(() => {
-                // Alternativa para lidar caso o backend não retorne CORS perfeitamente, mas grave os dados
                 alert("OPERAÇÃO PROCESSADA!");
                 cancelarEdicao();
                 carregarDadosIniciais();
