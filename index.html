@@ -120,7 +120,7 @@
 
         .top-section {
             display: grid;
-            grid-template-columns: 1.6fr 1.4fr;
+            grid-template-columns: 1.5fr 1.5fr; 
             gap: 20px;
         }
 
@@ -188,8 +188,40 @@
         .card-status.restrito .num { color: var(--neon-orange); }
         .card-status label { font-size: 0.65rem; color: #718096; text-align: center; font-weight: bold;}
 
+        .resumo-veiculos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .card-tipo-veiculo {
+            background: rgba(19, 28, 46, 0.7);
+            border: 1px solid #23324c;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-align: center;
+            border-top: 3px solid var(--neon-blue);
+        }
+        .card-tipo-veiculo .titulo-tipo {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #718096;
+            text-transform: uppercase;
+            display: block;
+        }
+        .card-tipo-veiculo .valores-tipo {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-top: 2px;
+            display: block;
+        }
+        .card-tipo-veiculo .valores-tipo span {
+            color: var(--neon-green);
+        }
+
         .frota-list {
-            max-height: 520px;
+            max-height: 420px;
             overflow-y: auto;
             margin-top: 5px;
             text-transform: uppercase;
@@ -224,9 +256,6 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        .badge-livre { background: rgba(57, 255, 20, 0.15); color: var(--neon-green); }
-        .badge-ocupado { background: rgba(255, 0, 85, 0.15); color: var(--neon-red); }
-        .badge-bloqueio { background: rgba(255, 159, 67, 0.15); color: var(--neon-orange); }
 
         .btn-liberar-link {
             display: block;
@@ -322,6 +351,34 @@
             padding-top: 15px;
         }
 
+        .modal-historico {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 9, 20, 0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--border-glow);
+        }
+        .fechar-modal {
+            float: right;
+            cursor: pointer;
+            color: var(--neon-red);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
         #areaImpressaoOrdem { display: none; }
 
         @media print {
@@ -334,7 +391,7 @@
                 padding: 0 !important;
                 margin: 0 !important;
             }
-            .login-container, .workspace-container, #telaLogin, #workspace {
+            .login-container, .workspace-container, #telaLogin, #workspace, .modal-historico {
                 display: none !important;
             }
             #areaImpressaoOrdem {
@@ -402,23 +459,33 @@
     <div class="workspace-container" id="workspace">
         <div class="header-main">
             <h2>ELLECE LOGÍSTICA - TERMINAL OPERACIONAL</h2>
-            <button class="btn-logout" onclick="realizarLogout()">Encerrar Sessão</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-logout" style="background:#10b981;" onclick="abrirModalHistorico()">Ver Histórico Diário</button>
+                <button class="btn-logout" style="background:#e67e22;" onclick="fecharDiaOperacional()">Fechar Dia Operacional</button>
+                <button class="btn-logout" onclick="realizarLogout()">Encerrar Sessão</button>
+            </div>
         </div>
 
         <div class="top-section">
+            
             <div class="panel">
                 <h3 id="formTitulo">Programação Ativa</h3>
                 <div class="grid-inputs">
                     
-                    <div class="input-group">
-                        <label>DT</label>
-                        <input type="text" id="formDt" placeholder="DIGITE O NÚMERO DA DT">
+                    <div class="input-group busca-sugestoes-wrapper" style="grid-column: span 2;">
+                        <label>Placa (Pesquise ou Digite)</label>
+                        <input type="text" id="formPlaca" placeholder="DIGITE PARA FILTRAR..." oninput="filtrarPesquisaPlaca()" onkeydown="navegarSugestoes(event, 'caixaSugestoesPlaca')" autocomplete="off">
+                        <div class="lista-sugestoes" id="caixaSugestoesPlaca"></div>
                     </div>
 
-                    <div class="input-group busca-sugestoes-wrapper">
-                        <label>Destino (Município / Rota)</label>
-                        <input type="text" id="formDestino" placeholder="DIGITE O DESTINO..." oninput="filtrarPesquisaDestino()" onkeydown="navegarSugestoes(event, 'caixaSugestoesDestino')" autocomplete="off">
-                        <div class="lista-sugestoes" id="caixaSugestoesDestino"></div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Motorista</label>
+                        <input type="text" id="formMotorista" class="input-disabled" readonly placeholder="AGUARDANDO LEITURA DE PLACA">
+                    </div>
+
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Tipo de Veículo</label>
+                        <input type="text" id="formTipo" class="input-disabled" readonly placeholder="AGUARDANDO LEITURA DE PLACA">
                     </div>
 
                     <div class="input-group">
@@ -429,7 +496,7 @@
                     </div>
 
                     <div class="input-group"><label>Cliente</label><input type="text" id="formCliente"></div>
-                    
+
                     <div class="input-group">
                         <label>Origem (Saída)</label>
                         <select id="formOrigem">
@@ -437,11 +504,26 @@
                         </select>
                     </div>
 
-                    <div class="input-group">
-                        <label>Agendamento</label>
-                        <input type="datetime-local" id="formAgendamento" onchange="validarRestricoesFormulario()">
+                    <div class="input-group busca-sugestoes-wrapper">
+                        <label>Destino (Município / Rota)</label>
+                        <input type="text" id="formDestino" placeholder="DIGITE O DESTINO..." oninput="filtrarPesquisaDestino()" onkeydown="navegarSugestoes(event, 'caixaSugestoesDestino')" autocomplete="off">
+                        <div class="lista-sugestoes" id="caixaSugestoesDestino"></div>
                     </div>
-                    
+
+                    <div class="input-group">
+                        <label>DT</label>
+                        <input type="text" id="formDt" placeholder="NÚMERO DA DT">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Nota Fiscal (NF)</label>
+                        <input type="text" id="formNotaFiscal" placeholder="Nº NOTA FISCAL">
+                    </div>
+
+                    <div class="input-group"><label>Volume</label><input type="number" id="formVolume"></div>
+
+                    <div class="input-group"><label>Peso (KG)</label><input type="number" id="formPeso" oninput="validarRestricoesFormulario()"></div>
+
                     <div class="input-group">
                         <label>Tipo de Carga</label>
                         <select id="formTipoCarga" onchange="alternarEstadoCampoPallets()">
@@ -449,25 +531,17 @@
                             <option value="PALETIZADA">CARGA PALETIZADA</option>
                         </select>
                     </div>
-
                     <div class="input-group">
                         <label>Quantidade de Pallets</label>
                         <input type="number" id="formPallets" value="0" disabled oninput="validarRestricoesFormulario()">
                     </div>
 
-                    <div class="input-group"><label>Volume</label><input type="number" id="formVolume"></div>
-                    
-                    <div class="input-group busca-sugestoes-wrapper">
-                        <label>Placa (Pesquise ou Digite)</label>
-                        <input type="text" id="formPlaca" placeholder="DIGITE PARA FILTRAR..." oninput="filtrarPesquisaPlaca()" onkeydown="navegarSugestoes(event, 'caixaSugestoesPlaca')" autocomplete="off">
-                        <div class="lista-sugestoes" id="caixaSugestoesPlaca"></div>
-                    </div>
-
-                    <div class="input-group"><label>Peso (KG)</label><input type="number" id="formPeso" oninput="validarRestricoesFormulario()"></div>
                     <div class="input-group"><label>M³</label><input type="number" id="formM3" step="0.01" oninput="validarRestricoesFormulario()"></div>
-                    
-                    <div class="input-group"><label>Tipo</label><input type="text" id="formTipo" class="input-disabled" readonly></div>
-                    <div class="input-group" style="grid-column: span 2;"><label>Motorista</label><input type="text" id="formMotorista" class="input-disabled" readonly></div>
+
+                    <div class="input-group">
+                        <label>Agendamento</label>
+                        <input type="datetime-local" id="formAgendamento" onchange="validarRestricoesFormulario()">
+                    </div>
                     
                     <input type="hidden" id="formCpf">
                     <input type="hidden" id="formTelefone">
@@ -476,7 +550,7 @@
                     
                     <div style="grid-column: span 2; display: flex; gap: 10px;">
                         <button id="btnTransmitir" onclick="salvarProgramacao()">Gravar Dados</button>
-                        <button id="btnImprimir" style="background: linear-gradient(45deg, #2b6cb0, #3182ce); color:white;" onclick="gerarEImprimirOrdemIndividual()">Imprimir Ordem</button>
+                        <button id="btnImprimir" style="background: linear-gradient(45deg, #2b6cb0, #3182ce); color:white;" onclick="generarEImprimirOrdemIndividual()">Imprimir Ordem</button>
                         <button id="btnCancelarEdicao" style="background:#4a5568; color:white; display:none;" onclick="cancelarEdicao()">Cancelar Ajuste</button>
                     </div>
                 </div>
@@ -501,8 +575,19 @@
                         </div>
                     </div>
 
+                    <div class="resumo-veiculos-grid" id="resumoTiposVeiculo"></div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button onclick="marcarSobraComoSemDemandaMassa()" style="padding: 10px; font-size: 0.75rem; background: linear-gradient(45deg, #d35400, #e67e22); color: #fff; border-radius: 6px; flex: 1; font-weight: bold;">
+                            💥 SÓ SOBRA -> SEM DEMANDA
+                        </button>
+                        <button onclick="reverterSemDemandaParaDisponivelMassa()" style="padding: 10px; font-size: 0.75rem; background: linear-gradient(45deg, #2980b9, #3498db); color: #fff; border-radius: 6px; flex: 1; font-weight: bold;">
+                            🔄 REVERTER PARA DISPONÍVEL
+                        </button>
+                    </div>
+
                     <div class="input-group" style="margin-bottom: 8px;">
-                        <input type="text" id="txtFiltroListaFrota" placeholder="🔍 Filtrar lista de frotas..." oninput="renderizarFrota()" style="padding: 6px; font-size: 0.8rem;">
+                        <input type="text" id="txtFiltroListaFrota" placeholder="🔍 Filtrar por Placa, Motorista, Operação ou Tipo (TOCO, TRUCK, etc)..." oninput="renderizarFrota()" style="padding: 10px; font-size: 0.85rem;">
                     </div>
 
                     <div class="frota-list" id="listaFrota"></div>
@@ -516,6 +601,7 @@
                             <option value="MANUTENÇÃO">MANUTENÇÃO</option>
                             <option value="TRAVADO NO CLIENTE">TRAVADO NO CLIENTE</option>
                             <option value="PROBLEMA PESSOAL">PROBLEMA PESSOAL</option>
+                            <option value="SEM DEMANDA NA DATA">SEM DEMANDA NA DATA</option>
                         </select>
                         <button onclick="alternarBloqueioManual()" style="padding: 8px; font-size: 0.75rem; background: linear-gradient(45deg, var(--neon-orange), #ff7675); color: #fff;">Aplicar</button>
                     </div>
@@ -532,7 +618,7 @@
                 </div>
                 <div class="input-group" style="flex:1; margin-bottom:0;">
                     <label>Busca Textual</label>
-                    <input type="text" id="txtFiltro" placeholder="Filtrar por Placa, Cliente, DT..." oninput="filtrarTabela()">
+                    <input type="text" id="txtFiltro" placeholder="Filtrar por Placa, Cliente, DT, Nota Fiscal..." oninput="filtrarTabela()">
                 </div>
                 
                 <div class="input-group" style="max-width:90px; margin-bottom:0;">
@@ -550,12 +636,21 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 50px;">Nº Ref</th><th>Data</th><th>Agendamento</th><th>DT</th><th>Cliente</th><th>Placa</th><th>Motorista</th><th>Origem</th><th>Destino</th><th>Tipo Carga</th><th>Pallets</th><th>Peso</th><th>M³</th><th>Ações</th>
+                            <th style="width: 50px;">Nº Ref</th><th>Data</th><th>Agendamento</th><th>DT</th><th>NF</th><th>Cliente</th><th>Placa</th><th>Motorista</th><th>Origem</th><th>Destino</th><th>Tipo Carga</th><th>Pallets</th><th>Peso</th><th>M³</th><th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="corpoTabela"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div class="modal-historico" id="modalHistorico">
+        <div class="modal-content">
+            <span class="fechar-modal" onclick="fecharModalHistorico()">[FECHAR X]</span>
+            <h3>Histórico de Fechamento Operacional Diário</h3>
+            <hr style="border: 1px dashed #1e2d4a; margin-bottom: 15px;">
+            <div id="corpoHistoricoModal" style="color: var(--text-main); font-size: 0.9rem;"></div>
         </div>
     </div>
 
@@ -577,13 +672,11 @@
         let bloqueiosManuais = JSON.parse(localStorage.getItem("nexus_bloqueios_manuais")) || {};
         let liberacoesForçadas = JSON.parse(localStorage.getItem("nexus_liberacoes_forcadas")) || [];
 
-        // MODIFICAÇÃO CONFORME SOLICITADO: Sempre inicia em branco exigindo o login
         window.onload = function() {
             if (document.getElementById('filtroData')) {
                 document.getElementById('filtroData').valueAsDate = new Date();
             }
             
-            // Remove vestígios antigos e força o estado deslogado com campos vazios
             localStorage.removeItem("nexus_logado");
             document.getElementById('loginUser').value = "";
             document.getElementById('loginPass').value = "";
@@ -776,6 +869,53 @@
             validarRestricoesFormulario();
         }
 
+        function marcarSobraComoSemDemandaMassa() {
+            const dataFiltroRaw = document.getElementById('filtroData').value;
+            if(!dataFiltroRaw) { alert("POR FAVOR, SELECIONE UMA DATA NO CAMPO 'FILTRAR POR DATA' ANTES DE APLICAR."); return; }
+            
+            const partes = dataFiltroRaw.split("-");
+            const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            if(!confirm(`DESEJA COLOCOAR TODA A SOBRA DISPONÍVEL DO DIA ${dataFormatada} COMO 'SEM DEMANDA'?`)) return;
+
+            let modificados = 0;
+
+            cacheFrota.forEach(v => {
+                const placaNorm = v.placa.toUpperCase().trim();
+                
+                if (bloqueiosManuais[placaNorm]) return;
+
+                const jaOcupadoNaData = cacheProgramacoes.some(p => p.placa.toUpperCase().trim() === placaNorm && p.data === dataFormatada);
+
+                if (!jaOcupadoNaData && !liberacoesForçadas.includes(placaNorm)) {
+                    bloqueiosManuais[placaNorm] = "SEM DEMANDA NA DATA";
+                    modificados++;
+                }
+            });
+
+            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
+            alert(`SUCESSO: ${modificados} CARROS SOBRANTES FORAM CONFIGURADOS COMO 'SEM DEMANDA'.`);
+            renderizarFrota();
+            validarRestricoesFormulario();
+        }
+
+        function reverterSemDemandaParaDisponivelMassa() {
+            if(!confirm("DESEJA RETIRAR A RESTRIÇÃO DE TODOS OS CARROS QUE ESTÃO COMO 'SEM DEMANDA NA DATA' E DEIXÁ-LOW LIVRES NOVAMENTE?")) return;
+
+            let alterados = 0;
+            for (let placa in bloqueiosManuais) {
+                if (bloqueiosManuais[placa] === "SEM DEMANDA NA DATA") {
+                    delete bloqueiosManuais[placa];
+                    alterados++;
+                }
+            }
+
+            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
+            alert(`SUCESSO: ${alterados} CARROS RETORNARAM AO STATUS DE 'DISPONÍVEL'.`);
+            renderizarFrota();
+            validarRestricoesFormulario();
+        }
+
         function renderizarFrota() {
             const container = document.getElementById('listaFrota');
             container.innerHTML = "";
@@ -789,16 +929,24 @@
             let contRestrito = 0;
             let totalGeral = 0; 
 
+            let contagemTipos = {};
+
             cacheFrota.forEach(v => {
                 const placaNorm = v.placa.toUpperCase().trim();
                 const motoristaNorm = v.motorista.toUpperCase().trim();
                 const opNorm = (v.operacao || "VENDA").toUpperCase().trim();
+                const tipoNorm = (v.tipo || "").toUpperCase().trim();
                 
-                if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista)) {
+                if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista) && !tipoNorm.includes(filtroTextoLista)) {
                     return; 
                 }
 
                 totalGeral++;
+
+                if (!contagemTipos[tipoNorm]) {
+                    contagemTipos[tipoNorm] = { disponivel: 0, total: 0 };
+                }
+                contagemTipos[tipoNorm].total++;
 
                 let statusReservado = false;
                 let maisDeDozeHoras = false;
@@ -815,7 +963,10 @@
 
                 if (bloqueiosManuais[placaNorm]) contRestrito++;
                 else if ((statusReservado || maisDeDozeHoras) && !liberacoesForçadas.includes(placaNorm)) contProgramado++;
-                else contDisponivel++;
+                else {
+                    contDisponivel++;
+                    contagemTipos[tipoNorm].disponivel++;
+                }
 
                 let itemClass = "";
                 let badgeHtml = "";
@@ -824,24 +975,24 @@
                     itemClass = "bloqueado-manual";
                     badgeHtml = `
                         <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                            <span class="badge badge-bloqueio">${bloqueiosManuais[placaNorm]}</span>
+                            <span class="badge badge-bloqueio" style="background:rgba(255, 159, 67, 0.15); color:var(--neon-orange);">${bloqueiosManuais[placaNorm]}</span>
                             <span class="btn-liberar-link" onclick="document.getElementById('blockPlaca').value='${placaNorm}'; alternarBloqueioManual();">[Liberar]</span>
                         </div>`;
                 } 
                 else if (statusReservado && !liberacoesForçadas.includes(placaNorm)) {
                     itemClass = "indisponivel";
-                    badgeHtml = `<span class="badge badge-ocupado">RESERVADO (${stringAgendamento})</span>`;
+                    badgeHtml = `<span class="badge badge-ocupado" style="background:rgba(255, 0, 85, 0.15); color:var(--neon-red);">RESERVADO (${stringAgendamento})</span>`;
                 } 
                 else if (maisDeDozeHoras && !liberacoesForçadas.includes(placaNorm)) {
                     itemClass = "indisponivel";
                     badgeHtml = `
                         <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                            <span class="badge badge-ocupado">> 12H DESDE AGEND.</span>
+                            <span class="badge badge-ocupado" style="background:rgba(255, 0, 85, 0.15); color:var(--neon-red);">> 12H DESDE AGEND.</span>
                             <span class="btn-liberar-link btn-liberar-vermelho" onclick="forçarLiberacaoPlaca('${placaNorm}')">[Disponibilizar Carro]</span>
                         </div>`;
                 } 
                 else {
-                    badgeHtml = `<span class="badge badge-livre">Disponível</span>`;
+                    badgeHtml = `<span class="badge badge-livre" style="background:rgba(57, 255, 20, 0.15); color:var(--neon-green);">Disponível</span>`;
                 }
 
                 container.innerHTML += `
@@ -856,6 +1007,17 @@
                         </div>
                     </div>`;
             });
+
+            const containerTipos = document.getElementById('resumoTiposVeiculo');
+            containerTipos.innerHTML = "";
+            for (let tipo in contagemTipos) {
+                containerTipos.innerHTML += `
+                    <div class="card-tipo-veiculo">
+                        <span class="titulo-tipo">${tipo}</span>
+                        <span class="valores-tipo"><span>${contagemTipos[tipo].disponivel}</span> / ${contagemTipos[tipo].total}</span>
+                    </div>`;
+            }
+            if(containerTipos.innerHTML === "") containerTipos.innerHTML = "<span style='grid-column:span 3; color:#718096;'>Nenhum veículo encontrado</span>";
 
             if (totalGeral > 0) {
                 const pctDisp = Math.round((contDisponivel / totalGeral) * 100);
@@ -1005,6 +1167,7 @@
                 dt: document.getElementById('formDt').value.toUpperCase(),
                 agendamento: document.getElementById('formAgendamento').value,
                 volume: document.getElementById('formVolume').value,
+                notaFiscal: document.getElementById('formNotaFiscal').value.toUpperCase().trim(),
                 placa: placaForm,
                 peso: document.getElementById('formPeso').value,
                 m3: document.getElementById('formM3').value,
@@ -1035,39 +1198,46 @@
             });
         }
 
+        /* 🖨️ DOCUMENTO DE IMPRESSÃO */
         function construirHtmlBlocoOrdem(p) {
             let agendamentoFormatado = formatarDataHoraBr(p.agendamento);
             let exibeTipoCarga = p.tipoCarga || "BATIDA";
             let exibePallets = (exibeTipoCarga === "BATIDA") ? "CARGA BATIDA" : (p.qtdPallets || "0") + " PALLETS";
             let cpfCondutor = p.cpf || "NÃO INFORMADO";
             let telCondutor = p.telefone || "NÃO INFORMADO";
+            let exibeNf = p.notaFiscal || p.nota_fiscal || "NÃO INFORMADA";
+            let exibeVolume = p.volume || "0";
 
             return `
                 <div class="print-block">
                     <div class="print-header">
-                        <div style="font-size: 22pt; font-weight: bold; letter-spacing: 2px;">ELLECE LOGISTICA E TRANSPORTE</div>
+                        <div style="font-size: 22pt; font-weight: bold; letter-spacing: 2px;">ELLECE LOGÍSTICA E TRANSPORTE</div>
                         <div class="print-titulo">Ordem de Coleta e Instrução de Transporte</div>
                         <div style="font-size: 9pt; margin-top: 5px;">Processado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
                     </div>
                     <table class="print-table">
                         <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">1. CONTROLE E PROGRAMAÇÃO</th></tr>
                         <tr>
-                            <td style="width: 20%;"><strong>DATA DA PROGRAMAÇÃO:</strong></td>
-                            <td style="width: 30%; font-weight: bold;">${p.data}</td>
-                            <td style="width: 20%;"><strong>NÚMERO DA DT:</strong></td>
-                            <td style="width: 30%; font-size: 13pt; font-weight: bold;">${p.dt.toUpperCase()}</td>
+                            <td style="width: 25%;"><strong>DATA DA PROGRAMAÇÃO:</strong></td>
+                            <td style="width: 25%; font-weight: bold;">${p.data}</td>
+                            <td style="width: 25%;"><strong>NÚMERO DA DT:</strong></td>
+                            <td style="width: 25%; font-size: 13pt; font-weight: bold; color: #000;">${p.dt.toUpperCase()}</td>
                         </tr>
                         <tr>
                             <td><strong>DEPOSITANTE/CLIENTE:</strong></td>
                             <td>${p.depositante.toUpperCase()} / ${p.cliente.toUpperCase()}</td>
-                            <td><strong>AGENDAMENTO FLUXO:</strong></td>
-                            <td>${agendamentoFormatado}</td>
+                            <td><strong>NOTA FISCAL (NF):</strong></td>
+                            <td style="font-weight: bold; color: #000;">${exibeNf}</td>
                         </tr>
                         <tr>
+                            <td><strong>AGENDAMENTO FLUXO:</strong></td>
+                            <td>${agendamentoFormatado}</td>
                             <td><strong>ORIGEM COLETA:</strong></td>
                             <td>${p.origem.toUpperCase()}</td>
+                        </tr>
+                        <tr>
                             <td><strong>DESTINO / ROTA:</strong></td>
-                            <td>${p.destino.toUpperCase()}</td>
+                            <td colspan="3" style="font-weight: bold;">${p.destino.toUpperCase()}</td>
                         </tr>
                         <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">2. IDENTIFICAÇÃO DO EQUIPAMENTO E CONDUTOR</th></tr>
                         <tr>
@@ -1095,20 +1265,21 @@
                         </tr>
                         <tr>
                             <td><strong>QUANTIDADE PALLETS / TIPO:</strong></td>
-                            <td colspan="3"><strong>${exibePallets}</strong> (VOLUME INFO: ${p.volume || 0} UN)</td>
+                            <td colspan="3"><strong>${exibePallets}</strong> (VOLUME INFO: ${exibeVolume} UN)</td>
                         </tr>
                     </table>
                     <div style="margin-top: 25px; font-size: 8.5pt; line-height: 1.4; border: 1px solid #000; padding: 10px;">
                         <strong>TERMO DE RESPONSABILIDADE:</strong> O condutor declara ciência dos dados operacionais e compromete-se a efetuar o tráfego de acordo com as diretrizes de gerenciamento de risco estabelecidas pela Ellece Logística. Eventuais avarias de pátio devem ser notificadas antes da amarração final da carga.
                     </div>
                     <div class="print-assinatura">
-                        <div class="linha-assinatura">Expedição Interna<br>ELLECE LOGISTICA</div>
+                        <div class="linha-assinatura">Expedição Interna<br>ELLECE LOGÍSTICA</div>
                         <div class="linha-assinatura">Assinatura do Motorista<br>Concordância de Coleta</div>
                     </div>
                 </div>`;
         }
 
-        function gerarEImprimirOrdemIndividual() {
+        /* 💥 CORRIGIDO: CAPTURA COMPLETA DOS ELEMENTOS ATUAIS DA TELA */
+        function generarEImprimirOrdemIndividual() {
             const dtForm = document.getElementById('formDt').value.toUpperCase().trim();
             if(!dtForm) { alert("PREENCHA AO MENOS A DT PARA IMPRIMIR AVULSO."); return; }
 
@@ -1120,16 +1291,17 @@
                 origem: document.getElementById('formOrigem').value || "N/A",
                 destino: document.getElementById('formDestino').value || "N/A",
                 agendamento: document.getElementById('formAgendamento').value,
+                notaFiscal: document.getElementById('formNotaFiscal').value || "N/A",
                 placa: document.getElementById('formPlaca').value || "N/A",
                 tipo: document.getElementById('formTipo').value || "N/A",
                 motorista: document.getElementById('formMotorista').value || "N/A",
-                cpf: document.getElementById('formCpf').value,
-                telefone: document.getElementById('formTelefone').value,
+                cpf: document.getElementById('formCpf').value || "NÃO CONSTA",
+                telefone: document.getElementById('formTelefone').value || "NÃO CONSTA",
                 peso: document.getElementById('formPeso').value || "0",
                 m3: document.getElementById('formM3').value || "0",
                 tipoCarga: document.getElementById('formTipoCarga').value,
                 qtdPallets: document.getElementById('formPallets').value,
-                volume: document.getElementById('formVolume').value
+                volume: document.getElementById('formVolume').value || "0"
             };
 
             document.getElementById('areaImpressaoOrdem').innerHTML = construirHtmlBlocoOrdem(mockObjeto);
@@ -1170,6 +1342,7 @@
             document.getElementById('formOrigem').value = registro.origem.toUpperCase();
             document.getElementById('formDestino').value = registro.destino.toUpperCase();
             document.getElementById('formVolume').value = registro.volume;
+            document.getElementById('formNotaFiscal').value = registro.notaFiscal || registro.nota_fiscal || "";
             document.getElementById('formPeso').value = registro.peso;
             document.getElementById('formM3').value = registro.m3;
             document.getElementById('formAgendamento').value = registro.agendamento;
@@ -1203,6 +1376,7 @@
             document.getElementById('formOrigem').value = "";
             document.getElementById('formDestino').value = ""; 
             document.getElementById('formVolume').value = "";
+            document.getElementById('formNotaFiscal').value = "";
             document.getElementById('formPeso').value = ""; 
             document.getElementById('formM3').value = "";
             document.getElementById('formAgendamento').value = ""; 
@@ -1224,11 +1398,13 @@
 
             cacheFiltradoAtual = cacheProgramacoes.filter(p => {
                 const bateData = !dataFiltroFormato || p.data === dataFiltroFormato;
+                const nfString = p.notaFiscal || p.nota_fiscal || "";
                 const bateTermo = !termo || (
                     p.placa.toUpperCase().includes(termo) || 
                     p.cliente.toUpperCase().includes(termo) || 
                     p.dt.toUpperCase().includes(termo) || 
-                    p.destino.toUpperCase().includes(termo)
+                    p.destino.toUpperCase().includes(termo) ||
+                    nfString.toUpperCase().includes(termo)
                 );
                 return bateData && bateTermo;
             });
@@ -1245,12 +1421,14 @@
                 let exibeTipo = p.tipoCarga || "BATIDA";
                 let exibePallets = (exibeTipo === "BATIDA") ? "BATIDA" : (p.qtdPallets || "0") + " PL";
                 let horaAgendamento = formatarDataHoraBr(p.agendamento);
+                let exibeNf = p.notaFiscal || p.nota_fiscal || "-";
 
                 corpo.innerHTML += `<tr>
                     <td><strong style="color:var(--neon-cyan);">#${numeroReferencia}</strong></td>
                     <td>${p.data}</td>
                     <td><strong>${horaAgendamento}</strong></td>
                     <td><strong>${p.dt.toUpperCase()}</strong></td>
+                    <td style="color:var(--neon-blue);"><strong>${exibeNf}</strong></td>
                     <td>${p.cliente.toUpperCase()}</td>
                     <td>${p.placa.toUpperCase()}</td>
                     <td>${p.motorista.toUpperCase()}</td>
@@ -1282,6 +1460,121 @@
             botao.innerText = modoEdicao ? "CONFIRMAR ALTERAÇÕES" : "GRAVAR PROGRAMAÇÃO";
             document.getElementById('monitorStatus').className = "status-display";
             document.getElementById('monitorStatus').innerText = "AGUARDANDO LEITURA DE PLACA...";
+        }
+
+        function fecharDiaOperacional() {
+            const dataSelecionadaRaw = document.getElementById('filtroData').value;
+            if(!dataSelecionadaRaw) { alert("SELECIONE UMA DATA NO CAMPO 'FILTRAR POR DATA' PARA FECHAR O DIA."); return; }
+            
+            const partes = dataSelecionadaRaw.split("-");
+            const dataChaveStr = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            if(!confirm(`CONFIRMA O FECHAMENTO OPERACIONAL COMPLETO DO DIA ${dataChaveStr}?`)) return;
+
+            let totalCaminhoes = cacheFrota.length;
+            let programados = 0;
+            let manutencao = 0;
+            let travadoCliente = 0;
+            let problemaPessoal = 0;
+            let semDemanda = 0;
+            let disponiveisResidual = 0;
+
+            cacheFrota.forEach(v => {
+                const placaNorm = v.placa.toUpperCase().trim();
+                
+                if (bloqueiosManuais[placaNorm]) {
+                    let motivo = bloqueiosManuais[placaNorm].toUpperCase();
+                    if(motivo.includes("MANUTENÇÃO")) manutencao++;
+                    else if(motivo.includes("TRAVADO")) travadoCliente++;
+                    else if(motivo.includes("PESSOAL")) problemaPessoal++;
+                    else if(motivo.includes("DEMANDA")) semDemanda++;
+                    return;
+                }
+
+                const progNaData = cacheProgramacoes.find(p => p.placa.toUpperCase().trim() === placaNorm && p.data === dataChaveStr);
+                if (progNaData) {
+                    programados++;
+                } else {
+                    disponiveisResidual++;
+                }
+            });
+
+            let historicoDias = JSON.parse(localStorage.getItem("nexus_historico_fechamentos")) || {};
+            historicoDias[dataChaveStr] = {
+                data: dataChaveStr,
+                total: totalCaminhoes,
+                programados: programados,
+                manutencao: manutencao,
+                travadoCliente: travadoCliente,
+                problemaPessoal: problemaPessoal,
+                semDemanda: semDemanda,
+                disponiveisResidual: disponiveisResidual,
+                fechadoEm: new Date().toLocaleString('pt-BR')
+            };
+
+            localStorage.setItem("nexus_historico_fechamentos", JSON.stringify(historicoDias));
+            alert(`FECHAMENTO SALVO COM SUCESSO PARA O DIA ${dataChaveStr}!`);
+        }
+
+        function abrirModalHistorico() {
+            const modal = document.getElementById('modalHistorico');
+            const corpo = document.getElementById('corpoHistoricoModal');
+            let historicoDias = JSON.parse(localStorage.getItem("nexus_historico_fechamentos")) || {};
+
+            let chaves = Object.keys(historicoDias).sort((a,b) => {
+                return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+            });
+
+            if(chaves.length === 0) {
+                corpo.innerHTML = "<p style='color:var(--neon-orange); text-align:center;'>NENHUM DIA FOI FECHADO AINDA.</p>";
+            } else {
+                let htmlBase = `
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <input type="text" id="txtFiltroModal" placeholder="🔍 Filtrar histórico por data (Ex: 18/06/2026)..." oninput="filtrarCardsModal()" style="padding: 10px; font-size: 0.9rem;">
+                    </div>
+                    <div id="containerCardsModal" style="display:flex; flex-direction:column; gap:12px;">`;
+
+                chaves.forEach(dataKey => {
+                    let h = historicoDias[dataKey];
+                    htmlBase += `
+                        <div class="card-historico-item" data-data="${h.data}" style="background:var(--panel-sec); border: 1px solid #1e2d4a; padding:15px; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <strong style="color:var(--neon-cyan); font-size:1.05rem;">📆 DATA OPERAÇÃO: ${h.data}</strong>
+                                <span style="font-size:0.75rem; color:#718096;">Fechado em: ${h.fechadoEm}</span>
+                            </div>
+                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; text-align:center; font-size:0.8rem;">
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Frota Total: <strong style="color:#fff;">${h.total}</strong></div>
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Programados: <strong style="color:var(--neon-green);">${h.programados}</strong></div>
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Manutenção: <strong style="color:var(--neon-orange);">${h.manutencao}</strong></div>
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Travado Cliente: <strong style="color:var(--neon-blue);">${h.travadoCliente}</strong></div>
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Problema Pessoal: <strong style="color:var(--neon-red);">${h.problemaPessoal}</strong></div>
+                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Sem Demanda: <strong style="color:#718096;">${h.semDemanda}</strong></div>
+                                <div style="background:#162a2b; padding:6px; border-radius:4px; grid-column: span 3;">Sobra Disponível (Ocioso): <strong style="color:var(--neon-cyan);">${h.disponiveisResidual} carros</strong></div>
+                            </div>
+                        </div>`;
+                });
+                htmlBase += "</div>";
+                corpo.innerHTML = htmlBase;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function filtrarCardsModal() {
+            const termo = document.getElementById('txtFiltroModal').value.trim();
+            const cards = document.querySelectorAll('.card-historico-item');
+            
+            cards.forEach(card => {
+                const dataCard = card.getAttribute('data-data');
+                if (dataCard.includes(termo)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+
+        function fecharModalHistorico() {
+            document.getElementById('modalHistorico').style.display = 'none';
         }
     </script>
 </body>
