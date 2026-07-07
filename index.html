@@ -841,6 +841,41 @@
             } catch(e) { return isoString; }
         }
 
+        // --- TRAVA DE INTELIGÊNCIA ARTIFICIAL CONVERSORA ---
+        // Desinverte se o backend teimar em mandar invertido, cruzando os dados com o campo do agendamento
+        function obterDataSanitizadaSegura(p) {
+            let dataOriginal = p.data || "";
+            let agendamento = p.agendamento || "";
+
+            // Se vier o fuso horário bruto (Sat Mar 07 2026...)
+            if (dataOriginal.includes("GMT") || (!isNaN(Date.parse(dataOriginal)) && dataOriginal.length > 10 && !dataOriginal.includes("/"))) {
+                try {
+                    const d = new Date(dataOriginal);
+                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                } catch (e) {}
+            }
+
+            // Se tem a string dd/mm/aaaa, vamos cruzar com o agendamento (que vem inalterável em AAAA-MM-DD no backend)
+            if (dataOriginal.includes("/") && agendamento.includes("-")) {
+                let partesVisual = dataOriginal.split("/"); // [dd, mm, aaaa] ou [mm, dd, aaaa]
+                let dataIso = agendamento.substring(0,10); // "aaaa-mm-dd"
+                let partesIso = dataIso.split("-"); // [aaaa, mm, dd]
+
+                let diaCerto = parseInt(partesIso[2]);
+                let mesCerto = parseInt(partesIso[1]);
+
+                let diaVisual = parseInt(partesVisual[0]);
+                let mesVisual = parseInt(partesVisual[1]);
+
+                // Verificação de segurança: Se o dia visual for igual ao mês correto e o mês visual for igual ao dia correto, INVERTEU!
+                if (diaVisual === mesCerto && mesVisual === diaCerto && diaCerto !== mesCerto) {
+                    // Retorna a ordem correta baseada no ISO do agendamento
+                    return `${partesIso[2]}/${partesIso[1]}/${partesIso[0]}`;
+                }
+            }
+            return dataOriginal;
+        }
+
         function alternarBloqueioManual() {
             const placa = document.getElementById('blockPlaca').value.toUpperCase().trim();
             const motivo = document.getElementById('blockMotivo').value;
@@ -885,7 +920,9 @@
                 
                 if (bloqueiosManuais[placaNorm]) return;
 
-                const jaOcupadoNaData = cacheProgramacoes.some(p => p.placa.toUpperCase().trim() === placaNorm && p.data === dataFormatada);
+                const jaOcupadoNaData = cacheProgramacoes.some(p => {
+                    return p.placa.toUpperCase().trim() === placaNorm && obterDataSanitizadaSegura(p) === dataFormatada;
+                });
 
                 if (!jaOcupadoNaData && !liberacoesForçadas.includes(placaNorm)) {
                     bloqueiosManuais[placaNorm] = "SEM DEMANDA NA DATA";
@@ -1208,6 +1245,8 @@
             let exibeNf = p.notaFiscal || p.nota_fiscal || "NÃO INFORMADA";
             let exibeVolume = p.volume || "0";
 
+            let dataOrdemStr = obterDataSanitizadaSegura(p);
+
             return `
                 <div class="print-block">
                     <div class="print-header">
@@ -1219,7 +1258,7 @@
                         <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">1. CONTROLE E PROGRAMAÇÃO</th></tr>
                         <tr>
                             <td style="width: 25%;"><strong>DATA DA PROGRAMAÇÃO:</strong></td>
-                            <td style="width: 25%; font-weight: bold;">${p.data}</td>
+                            <td style="width: 25%; font-weight: bold;">${dataOrdemStr}</td>
                             <td style="width: 25%;"><strong>NÚMERO DA DT:</strong></td>
                             <td style="width: 25%; font-size: 13pt; font-weight: bold; color: #000;">${p.dt.toUpperCase()}</td>
                         </tr>
@@ -1278,7 +1317,6 @@
                 </div>`;
         }
 
-        /* 💥 CORRIGIDO: CAPTURA COMPLETA DOS ELEMENTOS ATUAIS DA TELA */
         function generarEImprimirOrdemIndividual() {
             const dtForm = document.getElementById('formDt').value.toUpperCase().trim();
             if(!dtForm) { alert("PREENCHA AO MENOS A DT PARA IMPRIMIR AVULSO."); return; }
@@ -1397,7 +1435,9 @@
             }
 
             cacheFiltradoAtual = cacheProgramacoes.filter(p => {
-                const bateData = !dataFiltroFormato || p.data === dataFiltroFormato;
+                let dataRegistro = obterDataSanitizadaSegura(p);
+
+                const bateData = !dataFiltroFormato || dataRegistro === dataFiltroFormato;
                 const nfString = p.notaFiscal || p.nota_fiscal || "";
                 const bateTermo = !termo || (
                     p.placa.toUpperCase().includes(termo) || 
@@ -1423,9 +1463,12 @@
                 let horaAgendamento = formatarDataHoraBr(p.agendamento);
                 let exibeNf = p.notaFiscal || p.nota_fiscal || "-";
 
+                // Puxa a data passando pela trava anti-inversão
+                let dataVisual = obterDataSanitizadaSegura(p);
+
                 corpo.innerHTML += `<tr>
                     <td><strong style="color:var(--neon-cyan);">#${numeroReferencia}</strong></td>
-                    <td>${p.data}</td>
+                    <td>${dataVisual}</td>
                     <td><strong>${horaAgendamento}</strong></td>
                     <td><strong>${p.dt.toUpperCase()}</strong></td>
                     <td style="color:var(--neon-blue);"><strong>${exibeNf}</strong></td>
@@ -1491,7 +1534,9 @@
                     return;
                 }
 
-                const progNaData = cacheProgramacoes.find(p => p.placa.toUpperCase().trim() === placaNorm && p.data === dataChaveStr);
+                const progNaData = cacheProgramacoes.find(p => {
+                    return p.placa.toUpperCase().trim() === placaNorm && obterDataSanitizadaSegura(p) === dataChaveStr;
+                });
                 if (progNaData) {
                     programados++;
                 } else {
