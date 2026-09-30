@@ -1,1626 +1,656 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELLECE LOGÍSTICA - OPERAÇÃO INTEGRADA</title>
-    <style>
-        :root {
-            --bg-color: #050914;
-            --panel-bg: #0c1322;
-            --panel-sec: #131c2e;
-            --neon-cyan: #FFAA00;   
-            --neon-blue: #FFC400;   
-            --neon-red: #ff0055;
-            --neon-green: #39ff14;
-            --neon-orange: #ff9f43;
-            --text-main: #e2e8f0;
-            --border-glow: 0 0 10px rgba(255, 170, 0, 0.25);
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestão e Programação de Frota</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--bd:#e2e5ea;--tx:#1e293b;--mu:#64748b;--pr:#1e4fbf;--nav:#0f1f3d}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+aside{width:230px;background:var(--nav);color:#c5d0e4;padding:20px 12px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;gap:4px;z-index:5}
+aside h1{font-size:16px;color:#fff;margin:0 8px 18px}
+aside h1 small{display:block;font-weight:400;color:#8b9bb8;font-size:12px}
+.nav{background:none;border:0;color:inherit;text-align:left;padding:9px 12px;border-radius:6px;font:inherit;cursor:pointer}
+.nav:hover{background:#1a2d52}.nav.on{background:var(--pr);color:#fff}
+.sync{margin-top:auto;font-size:12px;padding:8px;color:#8b9bb8}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:6px}
+.dot.ok{background:#22c55e}.dot.err{background:#ef4444}.dot.busy{background:#f59e0b}
+main{margin-left:230px;padding:24px 28px;flex:1;min-width:0;overflow-x:hidden}
+h2{margin:0 0 4px;font-size:20px}.sub{color:var(--mu);margin:0 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;border-left:4px solid var(--c,#94a3b8)}
+.kpi b{font-size:22px;display:block;line-height:1.2}.kpi span{color:var(--mu);font-size:12px}
+.kpi small{font-size:12px;color:var(--mu);font-weight:600;margin-left:4px}
+.profiles-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px}
+.profile-card{background:#fff;border:1px solid var(--bd);border-radius:6px;padding:6px 12px;font-size:12px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.profile-card b{color:var(--pr)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+input,select,textarea,button{font:inherit}
+input,select,textarea{border:1px solid var(--bd);border-radius:6px;padding:7px 10px;background:#fff;color:var(--tx);width:auto;text-transform:uppercase}
+textarea{width:100%;resize:vertical}
+.btn{background:var(--pr);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--tx);border:1px solid var(--bd)}
+.btn.danger{background:#dc2626;color:#fff;border:0}
+.banner{background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+.board-wrapper{width:100%;overflow-x:auto;padding-bottom:16px}
+.board-wrapper::-webkit-scrollbar{height:8px}
+.board-wrapper::-webkit-scrollbar-track{background:#e2e8f0;border-radius:6px}
+.board-wrapper::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:6px}
+.board{display:flex;gap:10px;align-items:start;min-width:max-content;padding-right:24px}
+.col{background:#e9ecf1;border-radius:10px;padding:8px;width:220px;flex-shrink:0}
+.col h3{margin:2px 4px 8px;font-size:13px;display:flex;justify-content:space-between}
+.col h3 span{color:var(--mu);font-weight:400}
+.vc{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer;border-left:4px solid var(--c);position:relative}
+.vc:hover{border-color:var(--pr)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.mu{color:var(--mu);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd{font-size:10.5px;padding:2px 6px;border-radius:99px;background:var(--c);color:#fff}
+.mt{margin:4px 0 2px;font-size:11px;color:#991b1b;background:#fee2e2;border-radius:5px;padding:2px 6px}
+.cap-tag{font-size:9.5px;color:#475569;background:#f1f5f9;padding:2px 4px;border-radius:4px;margin-top:4px;display:inline-block}
+.vc select{margin-top:6px;width:100%;padding:3px 4px;font-size:11.5px}
 
-        .login-container {
-            display: none;
-            background: var(--panel-bg);
-            border: 2px solid var(--neon-cyan);
-            box-shadow: var(--border-glow);
-            border-radius: 12px;
-            padding: 40px;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-        }
-
-        h2, h3 {
-            color: var(--neon-cyan);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 0;
-            text-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
-        }
-
-        .input-group {
-            margin-bottom: 14px;
-            text-align: left;
-            position: relative;
-        }
-
-        label {
-            font-size: 0.75rem;
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            background: #162032;
-            border: 1px solid #23324c;
-            border-radius: 5px;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 0.9rem;
-            text-transform: uppercase; 
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
-        }
-
-        select option {
-            background: var(--panel-bg);
-            color: #fff;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-cyan));
-            border: none;
-            border-radius: 5px;
-            color: #050914;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: var(--border-glow);
-            transition: all 0.2s;
-        }
-
-        button:hover { filter: brightness(1.2); }
-        button.btn-bloqueado {
-            background: var(--neon-red) !important;
-            color: #fff !important;
-            box-shadow: 0 0 12px rgba(255, 0, 85, 0.5) !important;
-            cursor: not-allowed !important;
-        }
-
-        .workspace-container {
-            display: none;
-            width: 100%;
-            max-width: 1350px;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .top-section {
-            display: grid;
-            grid-template-columns: 1.5fr 1.5fr; 
-            gap: 20px;
-        }
-
-        .panel {
-            background: var(--panel-bg);
-            border: 1px solid #1e2d4a;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        .grid-inputs {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .input-disabled {
-            background: #090e1a;
-            color: var(--neon-cyan);
-            cursor: not-allowed;
-        }
-
-        .busca-sugestoes-wrapper { position: relative; }
-        .lista-sugestoes {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: var(--panel-sec);
-            border: 1px solid var(--neon-blue);
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 10;
-            border-radius: 0 0 5px 5px;
-            display: none;
-            text-transform: uppercase;
-        }
-        .lista-sugestoes div {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #162032;
-            font-size: 0.85rem;
-        }
-        .lista-sugestoes div:hover, .lista-sugestoes div.active {
-            background: rgba(255, 170, 0, 0.2);
-            color: var(--neon-cyan);
-        }
-
-        .resumo-status-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .card-status {
-            background: var(--panel-sec);
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #1e2d4a;
-        }
-        .card-status .num { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 2px;}
-        .card-status.disponivel .num { color: var(--neon-green); }
-        .card-status.programado .num { color: var(--neon-red); }
-        .card-status.restrito .num { color: var(--neon-orange); }
-        .card-status label { font-size: 0.65rem; color: #718096; text-align: center; font-weight: bold;}
-
-        .resumo-veiculos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .card-tipo-veiculo {
-            background: rgba(19, 28, 46, 0.7);
-            border: 1px solid #23324c;
-            padding: 6px 10px;
-            border-radius: 6px;
-            text-align: center;
-            border-top: 3px solid var(--neon-blue);
-        }
-        .card-tipo-veiculo .titulo-tipo {
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: #718096;
-            text-transform: uppercase;
-            display: block;
-        }
-        .card-tipo-veiculo .valores-tipo {
-            font-size: 1rem;
-            font-weight: bold;
-            color: var(--text-main);
-            margin-top: 2px;
-            display: block;
-        }
-        .card-tipo-veiculo .valores-tipo span {
-            color: var(--neon-green);
-        }
-
-        .frota-list {
-            max-height: 420px;
-            overflow-y: auto;
-            margin-top: 5px;
-            text-transform: uppercase;
-        }
-
-        .frota-item {
-            background: var(--panel-sec);
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            border-left: 4px solid var(--neon-green);
-        }
-
-        .frota-item.indisponivel {
-            border-left: 4px solid var(--neon-red);
-            opacity: 0.85;
-        }
-
-        .frota-item.bloqueado-manual {
-            border-left: 4px solid var(--neon-orange);
-            opacity: 0.9;
-        }
-
-        .badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .btn-liberar-link {
-            display: block;
-            font-size: 0.65rem;
-            color: #ff9f43;
-            text-decoration: underline;
-            margin-top: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: right;
-        }
-        .btn-liberar-link:hover { color: #fff; }
-        .btn-liberar-vermelho { color: #ff7675 !important; }
-
-        .table-wrapper {
-            max-height: 280px;
-            overflow-y: auto;
-            border: 1px solid #1e2d4a;
-            border-radius: 6px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            text-align: left;
-            text-transform: uppercase; 
-        }
-
-        th {
-            background: var(--panel-sec);
-            color: var(--neon-cyan);
-            padding: 12px;
-            position: sticky;
-            top: 0;
-            border-bottom: 2px solid #1e2d4a;
-        }
-
-        td { padding: 10px 12px; border-bottom: 1px solid #162032; }
-        tr:hover { background: rgba(255, 170, 0, 0.03); }
-
-        .btn-action {
-            padding: 5px 10px;
-            font-size: 0.75rem;
-            border-radius: 3px;
-            width: auto;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .btn-edit { background: linear-gradient(45deg, #0072ff, #00c6ff); color: white; }
-        .btn-del { background: var(--neon-red); color: white; box-shadow: none; }
-
-        .status-display {
-            grid-column: span 2;
-            background: rgba(255, 170, 0, 0.03);
-            border: 1px solid var(--neon-green);
-            padding: 12px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: var(--neon-green);
-            text-transform: uppercase;
-        }
-
-        .status-danger { background: rgba(255, 0, 85, 0.06); border: 1px solid var(--neon-red); color: var(--neon-red); }
-        .status-warning { background: rgba(255, 159, 67, 0.06); border: 1px solid var(--neon-orange); color: var(--neon-orange); }
-        
-        .header-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .btn-logout {
-            width: auto;
-            padding: 8px 15px;
-            background: #2d3748;
-            color: #e2e8f0;
-            font-size: 0.8rem;
-            box-shadow: none;
-        }
-        .filtros-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            align-items: flex-end;
-        }
-
-        .painel-bloqueio {
-            margin-top: 15px;
-            border-top: 1px dashed #1e2d4a;
-            padding-top: 15px;
-        }
-
-        .modal-historico {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 9, 20, 0.85);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: var(--panel-bg);
-            border: 2px solid var(--neon-cyan);
-            border-radius: 12px;
-            padding: 25px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: var(--border-glow);
-        }
-        .fechar-modal {
-            float: right;
-            cursor: pointer;
-            color: var(--neon-red);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        #areaImpressaoOrdem { display: none; }
-
-        @media print {
-            body {
-                background: #fff !important;
-                color: #000 !important;
-                font-family: Arial, sans-serif;
-                display: block !important;
-                min-height: auto !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .login-container, .workspace-container, #telaLogin, #workspace, .modal-historico {
-                display: none !important;
-            }
-            #areaImpressaoOrdem {
-                display: block !important;
-                padding: 0 !important;
-                background: #fff !important;
-            }
-            .print-block {
-                page-break-after: always;
-                box-sizing: border-box;
-                padding: 30px;
-            }
-            .print-block:last-child {
-                page-break-after: avoid;
-            }
-            .print-header {
-                text-align: center;
-                border-bottom: 2px solid #000;
-                padding-bottom: 10px;
-                margin-bottom: 20px;
-            }
-            .print-titulo {
-                font-size: 15pt;
-                font-weight: bold;
-                text-transform: uppercase;
-                margin: 5px 0;
-            }
-            .print-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-                margin-bottom: 15px;
-            }
-            .print-table td, .print-table th {
-                border: 1px solid #000 !important;
-                padding: 8px 12px !important;
-                color: #000 !important;
-                font-size: 10pt !important;
-                text-align: left;
-            }
-            .print-assinatura {
-                margin-top: 50px;
-                display: flex;
-                justify-content: space-around;
-                text-align: center;
-            }
-            .linha-assinatura {
-                border-top: 1px solid #000;
-                width: 250px;
-                padding-top: 5px;
-                font-size: 10pt;
-            }
-        }
-    </style>
+.s-Disponível{--c:#94a3b8}.s-Programado{--c:#2563eb}.s-Produzindo{--c:#16a34a}.s-Manutenção{--c:#d97706}.s-Improdutivo{--c:#dc2626}
+section{display:none}section.on{display:block}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:18px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:top}th{background:#f8fafc;font-size:12.5px;color:var(--mu)}
+.prof-tag{display:inline-block;background:#f1f5f9;border:1px solid #cbd5e1;font-size:11px;padding:2px 6px;border-radius:4px;margin:2px 2px 2px 0}
+.wrap{overflow-x:auto}
+dialog{border:0;border-radius:10px;padding:0;width:min(560px,94vw);box-shadow:0 20px 50px #0004}
+dialog::backdrop{background:#0f1f3d88}
+dialog form{padding:20px;display:grid;gap:10px}dialog label{font-size:12.5px;color:var(--mu);display:grid;gap:4px}
+dialog input,dialog select{width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:14px;display:grid;gap:10px}
+@media(max-width:800px){aside{position:static;width:100%;flex-direction:row;flex-wrap:wrap;padding:10px}aside h1{width:100%;margin-bottom:4px}.sync{display:none}body{flex-direction:column}main{margin:0;padding:16px}.grid2{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
+<aside>
+<h1>Gestão de Frota<small>Programação diária</small></h1>
+<button class="nav on" data-v="prog">Programação de Veículos</button>
+<button class="nav" data-v="hist">Histórico e Produtividade</button>
+<button class="nav" data-v="conf">Configurações</button>
+<div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Aguardando</span></div>
+</aside>
 
-    <div class="login-container" id="telaLogin">
-        <h2>Nexus Auth</h2>
-        <div class="input-group"><label>Operador</label><input type="text" id="loginUser" placeholder="USUÁRIO" autocomplete="off"></div>
-        <div class="input-group"><label>Chave</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="off"></div>
-        <button onclick="realizarLogin()">Acessar Terminal</button>
+<main>
+<div class="banner" id="demo">Não foi possível ler a planilha. Exibindo dados de demonstração salvos neste navegador. Veja Configurações.</div>
+
+<section id="prog" class="on">
+    <h2>Programação de Veículos</h2>
+    <p class="sub" id="hoje"></p>
+    <div class="kpis" id="kpis"></div>
+    <div class="bar">
+        <input id="q" type="search" placeholder="BUSCAR PLACA OU MOTORISTA">
+        <select id="fp"><option value="">TODOS OS PERFIS</option></select>
+        <select id="fs"><option value="">TODOS OS STATUS</option></select>
+        <button class="btn ghost" id="reload">Atualizar da planilha</button>
     </div>
+    <div class="profiles-bar" id="profileCards"></div>
+    <div class="board-wrapper">
+        <div class="board" id="board"></div>
+    </div>
+</section>
 
-    <div class="workspace-container" id="workspace">
-        <div class="header-main">
-            <h2>ELLECE LOGÍSTICA - TERMINAL OPERACIONAL</h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-logout" style="background:#10b981;" onclick="abrirModalHistorico()">Ver Histórico Diário</button>
-                <button class="btn-logout" style="background:#e67e22;" onclick="fecharDiaOperacional()">Fechar Dia Operacional</button>
-                <button class="btn-logout" onclick="realizarLogout()">Encerrar Sessão</button>
-            </div>
+<section id="hist">
+    <h2>Histórico e Produtividade</h2>
+    <p class="sub">Consulte o que foi programado, o que produziu e o detalhamento dos perfis de cada veículo.</p>
+    <div class="bar">
+        <label>De <input type="date" id="d1"></label>
+        <label>Até <input type="date" id="d2"></label>
+        <button class="btn" id="filtrar">Filtrar</button>
+        <button class="btn ghost" id="btnExportHist">Exportar Histórico (CSV)</button>
+        <button class="btn danger" id="btnDeleteHist" style="margin-left:auto">Excluir Histórico Filtrado</button>
+    </div>
+    <div class="kpis" id="hk"></div>
+    <div class="wrap"><table id="hsum"></table></div>
+    <h3>Justificativas de paradas</h3>
+    <div class="wrap"><table id="hdet"></table></div>
+</section>
+
+<section id="conf">
+    <h2>Configurações</h2>
+    <p class="sub">Conexão com a planilha e controle da virada de dia.</p>
+    <div class="card">
+    <label>URL do Web App (Google Apps Script)<input id="url" style="width:100%"></label>
+    <div class="bar" style="margin:0"><button class="btn" id="saveUrl">Salvar e recarregar</button></div>
+    <div class="mu" id="cols"></div>
+    </div>
+    <div class="card">
+    <b>Virada de dia</b>
+    <div class="mu">O painel verifica a data a cada 30 segundos. Ao virar o dia, salva o fechamento no histórico e zera as programações.</div>
+    <div class="bar" style="margin:0">
+        <button class="btn ghost" id="sim">Simular virada de dia (23:59 → 00:00)</button>
+        <button class="btn ghost" id="clr">Limpar histórico local</button>
+    </div>
+    </div>
+</section>
+</main>
+
+<dialog id="dlg">
+<form id="frm">
+    <b id="dTitle" style="font-size:16px"></b>
+    <div id="vCaps" class="cap-tag" style="margin-bottom:6px"></div>
+    <div class="grid2">
+        <label>Motorista<input id="fMot"></label>
+        <label>Status<select id="fSt"></select></label>
+    </div>
+    
+    <!-- Programação de Carga -->
+    <div id="secProg" style="display:none; border-top: 1px solid var(--bd); padding-top:10px; margin-top:4px;">
+        <b style="color:var(--pr)">Dados da Carga / Rota</b>
+        <div class="grid2" style="margin-top:6px">
+            <label>Depositante<input id="pDep" value="PANDURATA"></label>
+            <label>Cliente<input id="pCli"></label>
         </div>
-
-        <div class="top-section">
-            
-            <div class="panel">
-                <h3 id="formTitulo">Programação Ativa</h3>
-                <div class="grid-inputs">
-                    
-                    <div class="input-group busca-sugestoes-wrapper" style="grid-column: span 2;">
-                        <label>Placa (Pesquise ou Digite)</label>
-                        <input type="text" id="formPlaca" placeholder="DIGITE PARA FILTRAR..." oninput="filtrarPesquisaPlaca()" onkeydown="navegarSugestoes(event, 'caixaSugestoesPlaca')" autocomplete="off">
-                        <div class="lista-sugestoes" id="caixaSugestoesPlaca"></div>
-                    </div>
-
-                    <div class="input-group" style="grid-column: span 2;">
-                        <label>Motorista</label>
-                        <input type="text" id="formMotorista" class="input-disabled" readonly placeholder="AGUARDANDO LEITURA DE PLACA">
-                    </div>
-
-                    <div class="input-group" style="grid-column: span 2;">
-                        <label>Tipo de Veículo</label>
-                        <input type="text" id="formTipo" class="input-disabled" readonly placeholder="AGUARDANDO LEITURA DE PLACA">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Depositante</label>
-                        <select id="formDepositante">
-                            <option value="">Carregando depositantes...</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group"><label>Cliente</label><input type="text" id="formCliente"></div>
-
-                    <div class="input-group">
-                        <label>Origem (Saída)</label>
-                        <select id="formOrigem">
-                            <option value="">-- SELECIONE A ORIGEM --</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group busca-sugestoes-wrapper">
-                        <label>Destino (Município / Rota)</label>
-                        <input type="text" id="formDestino" placeholder="DIGITE O DESTINO..." oninput="filtrarPesquisaDestino()" onkeydown="navegarSugestoes(event, 'caixaSugestoesDestino')" autocomplete="off">
-                        <div class="lista-sugestoes" id="caixaSugestoesDestino"></div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>DT</label>
-                        <input type="text" id="formDt" placeholder="NÚMERO DA DT">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Nota Fiscal (NF)</label>
-                        <input type="text" id="formNotaFiscal" placeholder="Nº NOTA FISCAL">
-                    </div>
-
-                    <div class="input-group"><label>Volume</label><input type="number" id="formVolume"></div>
-
-                    <div class="input-group"><label>Peso (KG)</label><input type="number" id="formPeso" oninput="validarRestricoesFormulario()"></div>
-
-                    <div class="input-group">
-                        <label>Tipo de Carga</label>
-                        <select id="formTipoCarga" onchange="alternarEstadoCampoPallets()">
-                            <option value="BATIDA">CARGA BATIDA</option>
-                            <option value="PALETIZADA">CARGA PALETIZADA</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Quantidade de Pallets</label>
-                        <input type="number" id="formPallets" value="0" disabled oninput="validarRestricoesFormulario()">
-                    </div>
-
-                    <div class="input-group"><label>M³</label><input type="number" id="formM3" step="0.01" oninput="validarRestricoesFormulario()"></div>
-
-                    <div class="input-group">
-                        <label>Agendamento</label>
-                        <input type="datetime-local" id="formAgendamento" onchange="validarRestricoesFormulario()">
-                    </div>
-                    
-                    <input type="hidden" id="formCpf">
-                    <input type="hidden" id="formTelefone">
-
-                    <div class="status-display" id="monitorStatus">AGUARDANDO LEITURA DE PLACA...</div>
-                    
-                    <div style="grid-column: span 2; display: flex; gap: 10px;">
-                        <button id="btnTransmitir" onclick="salvarProgramacao()">Gravar Dados</button>
-                        <button id="btnImprimir" style="background: linear-gradient(45deg, #2b6cb0, #3182ce); color:white;" onclick="generarEImprimirOrdemIndividual()">Imprimir Ordem</button>
-                        <button id="btnCancelarEdicao" style="background:#4a5568; color:white; display:none;" onclick="cancelarEdicao()">Cancelar Ajuste</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <h3>Monitor de Disponibilidade da Frota</h3>
-                    
-                    <div class="resumo-status-container">
-                        <div class="card-status disponivel">
-                            <label>Disponíveis</label>
-                            <span class="num" id="indicadorDisponivel">0 / 0 (0%)</span>
-                        </div>
-                        <div class="card-status programado">
-                            <label>Programados</label>
-                            <span class="num" id="indicadorProgramado">0 / 0 (0%)</span>
-                        </div>
-                        <div class="card-status restrito">
-                            <label>Restrições</label>
-                            <span class="num" id="indicadorRestrito">0 / 0 (0%)</span>
-                        </div>
-                    </div>
-
-                    <div class="resumo-veiculos-grid" id="resumoTiposVeiculo"></div>
-
-                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                        <button onclick="marcarSobraComoSemDemandaMassa()" style="padding: 10px; font-size: 0.75rem; background: linear-gradient(45deg, #d35400, #e67e22); color: #fff; border-radius: 6px; flex: 1; font-weight: bold;">
-                            💥 SÓ SOBRA -> SEM DEMANDA
-                        </button>
-                        <button onclick="reverterSemDemandaParaDisponivelMassa()" style="padding: 10px; font-size: 0.75rem; background: linear-gradient(45deg, #2980b9, #3498db); color: #fff; border-radius: 6px; flex: 1; font-weight: bold;">
-                            🔄 REVERTER PARA DISPONÍVEL
-                        </button>
-                    </div>
-
-                    <div class="input-group" style="margin-bottom: 8px;">
-                        <input type="text" id="txtFiltroListaFrota" placeholder="🔍 Filtrar por Placa, Motorista, Operação ou Tipo (TOCO, TRUCK, etc)..." oninput="renderizarFrota()" style="padding: 10px; font-size: 0.85rem;">
-                    </div>
-
-                    <div class="frota-list" id="listaFrota"></div>
-                </div>
-
-                <div class="painel-bloqueio">
-                    <h3>Restrição Operacional Manual</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1.2fr 0.8fr; gap: 8px;">
-                        <input type="text" id="blockPlaca" placeholder="PLACA" style="font-size: 0.8rem; padding: 8px;">
-                        <select id="blockMotivo" style="font-size: 0.8rem; padding: 8px;">
-                            <option value="MANUTENÇÃO">MANUTENÇÃO</option>
-                            <option value="TRAVADO NO CLIENTE">TRAVADO NO CLIENTE</option>
-                            <option value="PROBLEMA PESSOAL">PROBLEMA PESSOAL</option>
-                            <option value="SEM DEMANDA NA DATA">SEM DEMANDA NA DATA</option>
-                        </select>
-                        <button onclick="alternarBloqueioManual()" style="padding: 8px; font-size: 0.75rem; background: linear-gradient(45deg, var(--neon-orange), #ff7675); color: #fff;">Aplicar</button>
-                    </div>
-                </div>
-            </div>
+        <div class="grid2">
+            <label>Origem<input id="pOri" value="GUARULHOS"></label>
+            <label>Destino
+                <input id="pDes" list="dlDestinos" placeholder="DIGITE OU SELECIONE...">
+                <datalist id="dlDestinos"></datalist>
+            </label>
         </div>
-
-        <div class="panel">
-            <h3>Consultas / Central de Ajustes</h3>
-            <div class="filtros-container">
-                <div class="input-group" style="max-width:160px; margin-bottom:0;">
-                    <label>Filtrar por Data</label>
-                    <input type="date" id="filtroData" onchange="filtrarTabela()">
-                </div>
-                <div class="input-group" style="flex:1; margin-bottom:0;">
-                    <label>Busca Textual</label>
-                    <input type="text" id="txtFiltro" placeholder="Filtrar por Placa, Cliente, DT, Nota Fiscal..." oninput="filtrarTabela()">
-                </div>
-                
-                <div class="input-group" style="max-width:90px; margin-bottom:0;">
-                    <label>Da Ordem Nº</label>
-                    <input type="number" id="printLoteDe" min="1" placeholder="1">
-                </div>
-                <div class="input-group" style="max-width:90px; margin-bottom:0;">
-                    <label>Até Ordem Nº</label>
-                    <input type="number" id="printLoteAte" min="1" placeholder="10">
-                </div>
-                <button id="btnImprimirLote" style="width:auto; padding:10px 15px; background:linear-gradient(45deg, #10b981, #059669); color:white; font-size:0.8rem;" onclick="dispararImpressaoLote()">Imprimir Lote</button>
-            </div>
-
-            <div class="table-wrapper" style="margin-top: 15px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">Nº Ref</th><th>Data</th><th>Agendamento</th><th>DT</th><th>NF</th><th>Cliente</th><th>Placa</th><th>Motorista</th><th>Origem</th><th>Destino</th><th>Tipo Carga</th><th>Pallets</th><th>Peso</th><th>M³</th><th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="corpoTabela"></tbody>
-                </table>
-            </div>
+        <div class="grid2">
+            <label>DT (Roteiro)<input id="pDT"></label>
+            <label>Rota Sugerida<input id="pRota" readonly style="background:#f1f5f9; font-weight:bold"></label>
+        </div>
+        <div class="grid2">
+            <label>Volume<input type="number" id="pVol"></label>
+            <label>Peso (kg)<input type="number" step="0.01" id="pPeso"></label>
+        </div>
+        <div class="grid2">
+            <label>M3<input type="number" step="0.01" id="pM3"></label>
+            <label>Qtd Pallets<input type="number" id="pPallets"></label>
+        </div>
+        <div class="grid2">
+            <label>Agendamento<input type="datetime-local" id="pAgend"></label>
+            <label>Tipo Carga<select id="pTipoCarga"><option>BATIDA</option><option>PALETIZADA</option><option>DIVERSAS</option></select></label>
         </div>
     </div>
 
-    <div class="modal-historico" id="modalHistorico">
-        <div class="modal-content">
-            <span class="fechar-modal" onclick="fecharModalHistorico()">[FECHAR X]</span>
-            <h3>Histórico de Fechamento Operacional Diário</h3>
-            <hr style="border: 1px dashed #1e2d4a; margin-bottom: 15px;">
-            <div id="corpoHistoricoModal" style="color: var(--text-main); font-size: 0.9rem;"></div>
-        </div>
+    <!-- Parada -->
+    <div id="secParada" style="display:none; border-top: 1px solid var(--bd); padding-top:10px; margin-top:4px;">
+        <label id="lMot">Motivo da parada<select id="fMotivo"></select></label>
+        <label id="lObs">Detalhes (opcional)<textarea id="fObs" rows="2"></textarea></label>
     </div>
 
-    <div id="areaImpressaoOrdem"></div>
-
-    <script>
-        const URL_API = "https://script.google.com/macros/s/AKfycbx9e7jTwetWC4r7tuKBZDXbsJIrIH--peUQh6lvAzjUOQyj601_Z-fv9ztJ-4RMerOgNA/exec";
-
-        let limitePesoCaminhao = 0;
-        let limiteM3Caminhao = 0;
-        let limitePalletsCaminhao = 0; 
-        let cacheFrota = [];
-        let cacheProgramacoes = [];
-        let cacheRotasDestino = []; 
-        let cacheFiltradoAtual = []; 
-        let modoEdicao = false;
-        let indiceFocoSugestao = -1;
-        
-        let bloqueiosManuais = JSON.parse(localStorage.getItem("nexus_bloqueios_manuais")) || {};
-        let liberacoesForçadas = JSON.parse(localStorage.getItem("nexus_liberacoes_forcadas")) || [];
-
-        window.onload = function() {
-            if (document.getElementById('filtroData')) {
-                document.getElementById('filtroData').valueAsDate = new Date();
-            }
-            
-            localStorage.removeItem("nexus_logado");
-            document.getElementById('loginUser').value = "";
-            document.getElementById('loginPass').value = "";
-            
-            document.getElementById('workspace').style.display = 'none';
-            document.getElementById('telaLogin').style.display = 'block';
-            
-            document.addEventListener("click", function (e) {
-                if (e.target.id !== "formPlaca" && document.getElementById('caixaSugestoesPlaca')) {
-                    document.getElementById('caixaSugestoesPlaca').style.display = "none";
-                }
-                if (e.target.id !== "formDestino" && document.getElementById('caixaSugestoesDestino')) {
-                    document.getElementById('caixaSugestoesDestino').style.display = "none";
-                }
-            });
-        };
-
-        function realizarLogin() {
-            const user = document.getElementById('loginUser').value.toUpperCase().trim();
-            const pass = document.getElementById('loginPass').value.trim();
-            const btnLogin = document.querySelector("#telaLogin button");
-            
-            if(!user || !pass) {
-                alert("PREENCHA O OPERADOR E A CHAVE.");
-                return;
-            }
-            
-            btnLogin.innerText = "AUTENTICANDO...";
-            btnLogin.disabled = true;
-
-            fetch(URL_API, {
-                method: "POST",
-                body: JSON.stringify({ acao: "login", usuario: user, senha: pass })
-            })
-            .then(res => res.json())
-            .then(resultado => {
-                if (resultado.logado) {
-                    localStorage.setItem("nexus_logado", "true");
-                    document.getElementById('telaLogin').style.display = 'none';
-                    document.getElementById('workspace').style.display = 'flex';
-                    carregarDadosIniciais();
-                } else {
-                    alert("OPERADOR OU CHAVE INCORRETA. ACESSO NEGADO.");
-                    localStorage.removeItem("nexus_logado");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("ERRO DE CONEXÃO COM O TERMINAL.");
-            })
-            .finally(() => {
-                btnLogin.innerText = "Acessar Terminal";
-                btnLogin.disabled = false;
-            });
-        }
-
-        function realizarLogout() { 
-            localStorage.removeItem("nexus_logado"); 
-            document.getElementById('telaLogin').style.display = 'block';
-            document.getElementById('workspace').style.display = 'none';
-            document.getElementById('loginUser').value = "";
-            document.getElementById('loginPass').value = "";
-        }
-
-        function carregarDadosIniciais() {
-            fetch(URL_API)
-            .then(res => res.json())
-            .then(dados => {
-                cacheFrota = dados.frota || [];
-                cacheProgramacoes = dados.programacoes || [];
-                cacheRotasDestino = dados.rotasDestino || dados.rotas || [];
-                
-                const depositantesFixos = ["PANDURATA", "BARILLA"];
-                const selectDep = document.getElementById('formDepositante');
-                selectDep.innerHTML = '<option value="">-- SELECIONE O DEPOSITANTE --</option>';
-                depositantesFixos.forEach(dep => { selectDep.innerHTML += `<option value="${dep}">${dep}</option>`; });
-
-                const origensFixas = ["GUARULHOS", "MOGI", "EXTREMA", "RIO LARGO", "MACEIÓ"];
-                const selectOrigem = document.getElementById('formOrigem');
-                selectOrigem.innerHTML = '<option value="">-- SELECIONE A ORIGEM --</option>';
-                origensFixas.forEach(ori => { selectOrigem.innerHTML += `<option value="${ori}">${ori}</option>`; });
-
-                renderizarFrota();
-                filtrarTabela();
-            }).catch(err => console.log("Erro ao inicializar API"));
-        }
-
-        function alternarEstadoCampoPallets() {
-            const tipo = document.getElementById('formTipoCarga').value;
-            const campoPallets = document.getElementById('formPallets');
-            if (tipo === "BATIDA") {
-                campoPallets.value = "0";
-                campoPallets.disabled = true;
-            } else {
-                campoPallets.disabled = false;
-            }
-            validarRestricoesFormulario();
-        }
-
-        function navegarSugestoes(e, idCaixa) {
-            const caixa = document.getElementById(idCaixa);
-            const itens = caixa.querySelectorAll('div');
-            if (caixa.style.display !== "block" || itens.length === 0) return;
-
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                indiceFocoSugestao++;
-                if (indiceFocoSugestao >= itens.length) indiceFocoSugestao = 0;
-                atualizarFocoSugestao(itens);
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                indiceFocoSugestao--;
-                if (indiceFocoSugestao < 0) indiceFocoSugestao = itens.length - 1;
-                atualizarFocoSugestao(itens);
-            } else if (e.key === "Enter") {
-                e.preventDefault();
-                if (indiceFocoSugestao > -1 && itens[indiceFocoSugestao]) {
-                    itens[indiceFocoSugestao].click();
-                }
-            }
-        }
-
-        function atualizarFocoSugestao(itens) {
-            itens.forEach((item, index) => {
-                if (index === indiceFocoSugestao) {
-                    item.classList.add('active');
-                    item.scrollIntoView({ block: 'nearest' });
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        }
-
-        function filtrarPesquisaDestino() {
-            const texto = document.getElementById('formDestino').value.toUpperCase().trim();
-            const caixa = document.getElementById('caixaSugestoesDestino');
-            caixa.innerHTML = "";
-            indiceFocoSugestao = -1;
-
-            if (texto.length === 0) { caixa.style.display = "none"; return; }
-            const filtradas = cacheRotasDestino.filter(r => r.destino.toUpperCase().includes(texto));
-
-            if (filtradas.length > 0) {
-                caixa.style.display = "block";
-                filtradas.forEach((r, idx) => {
-                    caixa.innerHTML += `<div onclick="selecionarDestinoBusca('${r.destino}')">${r.destino}</div>`;
-                });
-            } else { caixa.style.display = "none"; }
-        }
-
-        function selecionarDestinoBusca(destinoAlvo) {
-            document.getElementById('formDestino').value = destinoAlvo;
-            document.getElementById('caixaSugestoesDestino').style.display = "none";
-            indiceFocoSugestao = -1;
-        }
-
-        function formatarDataHoraBr(isoString) {
-            if(!isoString) return "";
-            try {
-                const d = new Date(isoString);
-                return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            } catch(e) { return isoString; }
-        }
-
-        // --- TRAVA DE INTELIGÊNCIA ARTIFICIAL CONVERSORA ---
-        // Desinverte se o backend teimar em mandar invertido, cruzando os dados com o campo do agendamento
-        function obterDataSanitizadaSegura(p) {
-            let dataOriginal = p.data || "";
-            let agendamento = p.agendamento || "";
-
-            // Se vier o fuso horário bruto (Sat Mar 07 2026...)
-            if (dataOriginal.includes("GMT") || (!isNaN(Date.parse(dataOriginal)) && dataOriginal.length > 10 && !dataOriginal.includes("/"))) {
-                try {
-                    const d = new Date(dataOriginal);
-                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-                } catch (e) {}
-            }
-
-            // Se tem a string dd/mm/aaaa, vamos cruzar com o agendamento (que vem inalterável em AAAA-MM-DD no backend)
-            if (dataOriginal.includes("/") && agendamento.includes("-")) {
-                let partesVisual = dataOriginal.split("/"); // [dd, mm, aaaa] ou [mm, dd, aaaa]
-                let dataIso = agendamento.substring(0,10); // "aaaa-mm-dd"
-                let partesIso = dataIso.split("-"); // [aaaa, mm, dd]
-
-                let diaCerto = parseInt(partesIso[2]);
-                let mesCerto = parseInt(partesIso[1]);
-
-                let diaVisual = parseInt(partesVisual[0]);
-                let mesVisual = parseInt(partesVisual[1]);
-
-                // Verificação de segurança: Se o dia visual for igual ao mês correto e o mês visual for igual ao dia correto, INVERTEU!
-                if (diaVisual === mesCerto && mesVisual === diaCerto && diaCerto !== mesCerto) {
-                    // Retorna a ordem correta baseada no ISO do agendamento
-                    return `${partesIso[2]}/${partesIso[1]}/${partesIso[0]}`;
-                }
-            }
-            return dataOriginal;
-        }
-
-        function alternarBloqueioManual() {
-            const placa = document.getElementById('blockPlaca').value.toUpperCase().trim();
-            const motivo = document.getElementById('blockMotivo').value;
-            if(!placa) { alert("DIGITE UMA PLACA VÁLIDA."); return; }
-
-            if(bloqueiosManuais[placa]) {
-                delete bloqueiosManuais[placa];
-                alert(`RESTRIÇÃO OPERACIONAL RETIRADA DA PLACA ${placa}`);
-            } else {
-                bloqueiosManuais[placa] = motivo;
-                alert(`PLACA ${placa} MARCADA COMO INDISPONÍVEL POR: ${motivo}`);
-            }
-            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
-            document.getElementById('blockPlaca').value = "";
-            renderizarFrota();
-            validarRestricoesFormulario();
-        }
-
-        function forçarLiberacaoPlaca(placaAlvo) {
-            if(!confirm(`DESEJA LIBERAR A PLACA ${placaAlvo}?`)) return;
-            if(!liberacoesForçadas.includes(placaAlvo)) {
-                liberacoesForçadas.push(placaAlvo);
-                localStorage.setItem("nexus_liberacoes_forcadas", JSON.stringify(liberacoesForçadas));
-            }
-            renderizarFrota();
-            validarRestricoesFormulario();
-        }
-
-        function marcarSobraComoSemDemandaMassa() {
-            const dataFiltroRaw = document.getElementById('filtroData').value;
-            if(!dataFiltroRaw) { alert("POR FAVOR, SELECIONE UMA DATA NO CAMPO 'FILTRAR POR DATA' ANTES DE APLICAR."); return; }
-            
-            const partes = dataFiltroRaw.split("-");
-            const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-            if(!confirm(`DESEJA COLOCOAR TODA A SOBRA DISPONÍVEL DO DIA ${dataFormatada} COMO 'SEM DEMANDA'?`)) return;
-
-            let modificados = 0;
-
-            cacheFrota.forEach(v => {
-                const placaNorm = v.placa.toUpperCase().trim();
-                
-                if (bloqueiosManuais[placaNorm]) return;
-
-                const jaOcupadoNaData = cacheProgramacoes.some(p => {
-                    return p.placa.toUpperCase().trim() === placaNorm && obterDataSanitizadaSegura(p) === dataFormatada;
-                });
-
-                if (!jaOcupadoNaData && !liberacoesForçadas.includes(placaNorm)) {
-                    bloqueiosManuais[placaNorm] = "SEM DEMANDA NA DATA";
-                    modificados++;
-                }
-            });
-
-            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
-            alert(`SUCESSO: ${modificados} CARROS SOBRANTES FORAM CONFIGURADOS COMO 'SEM DEMANDA'.`);
-            renderizarFrota();
-            validarRestricoesFormulario();
-        }
-
-        function reverterSemDemandaParaDisponivelMassa() {
-            if(!confirm("DESEJA RETIRAR A RESTRIÇÃO DE TODOS OS CARROS QUE ESTÃO COMO 'SEM DEMANDA NA DATA' E DEIXÁ-LOW LIVRES NOVAMENTE?")) return;
-
-            let alterados = 0;
-            for (let placa in bloqueiosManuais) {
-                if (bloqueiosManuais[placa] === "SEM DEMANDA NA DATA") {
-                    delete bloqueiosManuais[placa];
-                    alterados++;
-                }
-            }
-
-            localStorage.setItem("nexus_bloqueios_manuais", JSON.stringify(bloqueiosManuais));
-            alert(`SUCESSO: ${alterados} CARROS RETORNARAM AO STATUS DE 'DISPONÍVEL'.`);
-            renderizarFrota();
-            validarRestricoesFormulario();
-        }
-
-        function renderizarFrota() {
-            const container = document.getElementById('listaFrota');
-            container.innerHTML = "";
-            const agora = new Date().getTime();
-            const DOZE_HORAS_MS = 12 * 60 * 60 * 1000;
-            
-            const filtroTextoLista = document.getElementById('txtFiltroListaFrota').value.toUpperCase().trim();
-
-            let contDisponivel = 0;
-            let contProgramado = 0;
-            let contRestrito = 0;
-            let totalGeral = 0; 
-
-            let contagemTipos = {};
-
-            cacheFrota.forEach(v => {
-                const placaNorm = v.placa.toUpperCase().trim();
-                const motoristaNorm = v.motorista.toUpperCase().trim();
-                const opNorm = (v.operacao || "VENDA").toUpperCase().trim();
-                const tipoNorm = (v.tipo || "").toUpperCase().trim();
-                
-                if (filtroTextoLista && !placaNorm.includes(filtroTextoLista) && !motoristaNorm.includes(filtroTextoLista) && !opNorm.includes(filtroTextoLista) && !tipoNorm.includes(filtroTextoLista)) {
-                    return; 
-                }
-
-                totalGeral++;
-
-                if (!contagemTipos[tipoNorm]) {
-                    contagemTipos[tipoNorm] = { disponivel: 0, total: 0 };
-                }
-                contagemTipos[tipoNorm].total++;
-
-                let statusReservado = false;
-                let maisDeDozeHoras = false;
-                let stringAgendamento = "";
-
-                const progAtiva = cacheProgramacoes.find(p => p.placa.toUpperCase().trim() === placaNorm && p.agendamento);
-
-                if (progAtiva) {
-                    const tempoAgendado = new Date(progAtiva.agendamento).getTime();
-                    stringAgendamento = formatarDataHoraBr(progAtiva.agendamento);
-                    if ((agora - tempoAgendado) < DOZE_HORAS_MS) statusReservado = true;
-                    else maisDeDozeHoras = true;
-                }
-
-                if (bloqueiosManuais[placaNorm]) contRestrito++;
-                else if ((statusReservado || maisDeDozeHoras) && !liberacoesForçadas.includes(placaNorm)) contProgramado++;
-                else {
-                    contDisponivel++;
-                    contagemTipos[tipoNorm].disponivel++;
-                }
-
-                let itemClass = "";
-                let badgeHtml = "";
-
-                if (bloqueiosManuais[placaNorm]) {
-                    itemClass = "bloqueado-manual";
-                    badgeHtml = `
-                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                            <span class="badge badge-bloqueio" style="background:rgba(255, 159, 67, 0.15); color:var(--neon-orange);">${bloqueiosManuais[placaNorm]}</span>
-                            <span class="btn-liberar-link" onclick="document.getElementById('blockPlaca').value='${placaNorm}'; alternarBloqueioManual();">[Liberar]</span>
-                        </div>`;
-                } 
-                else if (statusReservado && !liberacoesForçadas.includes(placaNorm)) {
-                    itemClass = "indisponivel";
-                    badgeHtml = `<span class="badge badge-ocupado" style="background:rgba(255, 0, 85, 0.15); color:var(--neon-red);">RESERVADO (${stringAgendamento})</span>`;
-                } 
-                else if (maisDeDozeHoras && !liberacoesForçadas.includes(placaNorm)) {
-                    itemClass = "indisponivel";
-                    badgeHtml = `
-                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                            <span class="badge badge-ocupado" style="background:rgba(255, 0, 85, 0.15); color:var(--neon-red);">> 12H DESDE AGEND.</span>
-                            <span class="btn-liberar-link btn-liberar-vermelho" onclick="forçarLiberacaoPlaca('${placaNorm}')">[Disponibilizar Carro]</span>
-                        </div>`;
-                } 
-                else {
-                    badgeHtml = `<span class="badge badge-livre" style="background:rgba(57, 255, 20, 0.15); color:var(--neon-green);">Disponível</span>`;
-                }
-
-                container.innerHTML += `
-                    <div class="frota-item ${itemClass}">
-                        <div>
-                            <strong>${v.placa}</strong> - ${v.tipo} <span style="color:var(--neon-blue); font-size:0.75rem; font-weight:bold;">(${opNorm})</span><br>
-                            <span style="color:#718096; font-size:0.75rem;">${v.motorista}</span>
-                        </div>
-                        <div style="text-align:right;">
-                            ${badgeHtml}
-                            <div style="font-family:monospace; color:var(--neon-cyan); font-size:0.75rem; margin-top:4px;">${v.pesoMax}KG | ${v.m3Max}M³ | ${v.palletsMax || 0}PL</div>
-                        </div>
-                    </div>`;
-            });
-
-            const containerTipos = document.getElementById('resumoTiposVeiculo');
-            containerTipos.innerHTML = "";
-            for (let tipo in contagemTipos) {
-                containerTipos.innerHTML += `
-                    <div class="card-tipo-veiculo">
-                        <span class="titulo-tipo">${tipo}</span>
-                        <span class="valores-tipo"><span>${contagemTipos[tipo].disponivel}</span> / ${contagemTipos[tipo].total}</span>
-                    </div>`;
-            }
-            if(containerTipos.innerHTML === "") containerTipos.innerHTML = "<span style='grid-column:span 3; color:#718096;'>Nenhum veículo encontrado</span>";
-
-            if (totalGeral > 0) {
-                const pctDisp = Math.round((contDisponivel / totalGeral) * 100);
-                const pctProg = Math.round((contProgramado / totalGeral) * 100);
-                const pctRest = Math.round((contRestrito / totalGeral) * 100);
-
-                document.getElementById('indicadorDisponivel').innerText = `${contDisponivel} / ${totalGeral} (${pctDisp}%)`;
-                document.getElementById('indicadorProgramado').innerText = `${contProgramado} / ${totalGeral} (${pctProg}%)`;
-                document.getElementById('indicadorRestrito').innerText = `${contRestrito} / ${totalGeral} (${pctRest}%)`;
-            } else {
-                document.getElementById('indicadorDisponivel').innerText = `0 / 0 (0%)`;
-                document.getElementById('indicadorProgramado').innerText = `0 / 0 (0%)`;
-                document.getElementById('indicadorRestrito').innerText = `0 / 0 (0%)`;
-            }
-        }
-
-        function filtrarPesquisaPlaca() {
-            const texto = document.getElementById('formPlaca').value.toUpperCase().trim();
-            const caixa = document.getElementById('caixaSugestoesPlaca');
-            caixa.innerHTML = "";
-            indiceFocoSugestao = -1;
-            if (texto.length === 0) { caixa.style.display = "none"; limparCamposAutomaticos(); return; }
-
-            const filtradas = cacheFrota.filter(v => v.placa.includes(texto));
-            if (filtradas.length > 0) {
-                caixa.style.display = "block";
-                filtradas.forEach(v => {
-                    let opExibe = v.operacao || "VENDA";
-                    caixa.innerHTML += `<div onclick="selecionarPlacaBusca('${v.placa}')"><strong>${v.placa}</strong> - ${v.motorista} <span style="color:var(--neon-cyan); font-weight:bold;">[${opExibe}]</span></div>`;
-                });
-            } else { caixa.style.display = "none"; document.getElementById('monitorStatus').className = "status-display status-danger"; document.getElementById('monitorStatus').innerText = "PLACA NÃO LOCALIZADA."; }
-        }
-
-        function selecionarPlacaBusca(placaAlvo) {
-            document.getElementById('formPlaca').value = placaAlvo.toUpperCase();
-            document.getElementById('caixaSugestoesPlaca').style.display = "none";
-            indiceFocoSugestao = -1;
-            
-            fetch(URL_API, { 
-                method: "POST", 
-                body: JSON.stringify({ acao: "buscarPlaca", placa: placaAlvo }) 
-            })
-            .then(res => res.json())
-            .then(dados => {
-                if(dados.encontrado) {
-                    document.getElementById('formMotorista').value = dados.motorista.toUpperCase();
-                    document.getElementById('formCpf').value = dados.cpf;
-                    document.getElementById('formTelefone').value = dados.telefone;
-                    document.getElementById('formTipo').value = dados.tipo.toUpperCase(); 
-                    limitePesoCaminhao = dados.pesoMax;
-                    limiteM3Caminhao = dados.m3Max;
-                    limitePalletsCaminhao = dados.palletsMax || 0; 
-                    
-                    document.getElementById('monitorStatus').className = "status-display";
-                    document.getElementById('monitorStatus').innerText = `TETO VEÍCULO (${(dados.operacao || 'VENDA').toUpperCase()}): ${limitePesoCaminhao} KG / ${limiteM3Caminhao} M³ / ${limitePalletsCaminhao} PALLETS`;
-                    
-                    validarRestricoesFormulario();
-                }
-            });
-        }
-
-        function validarRestricoesFormulario() {
-            const monitor = document.getElementById('monitorStatus');
-            const botao = document.getElementById('btnTransmitir');
-            
-            const placa = document.getElementById('formPlaca').value.toUpperCase().trim();
-            const dtAtual = document.getElementById('formDt').value.toUpperCase().trim();
-            const agendamentoForm = document.getElementById('formAgendamento').value;
-            const peso = parseFloat(document.getElementById('formPeso').value) || 0;
-            const m3 = parseFloat(document.getElementById('formM3').value) || 0;
-            
-            const tipoCarga = document.getElementById('formTipoCarga').value;
-            const palletsDigitados = parseFloat(document.getElementById('formPallets').value) || 0;
-
-            if (placa && bloqueiosManuais[placa]) {
-                monitor.className = "status-display status-warning";
-                monitor.innerText = `BLOQUEIO MANUAL: ESTE CARRO ESTÁ INDISPONÍVEL POR MOTIVO DE (${bloqueiosManuais[placa]}).`;
-                botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: OPERAÇÃO RESTRITA";
-                return;
-            }
-
-            if (limitePesoCaminhao > 0 || limiteM3Caminhao > 0) {
-                if (peso > limitePesoCaminhao || m3 > limiteM3Caminhao) {
-                    monitor.className = "status-display status-danger";
-                    monitor.innerText = "VEÍCULO NÃO SUPORTA ESSA CARGA! LIMITE DE CAPACIDADE EXCEDIDO.";
-                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: EXCESSO DE CARGA";
-                    return;
-                }
-            }
-
-            if (tipoCarga === "PALETIZADA" && placa) {
-                if (palletsDigitados > limitePalletsCaminhao) {
-                    monitor.className = "status-display status-danger";
-                    monitor.innerText = `VEÍCULO NÃO SUPORTA! DIGITADO: ${palletsDigitados} PL / LIMITE DA PLACA: ${limitePalletsCaminhao} PL.`;
-                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: EXCESSO DE PALLETS";
-                    return;
-                }
-            }
-
-            if (placa && agendamentoForm) {
-                const tempoForm = new Date(agendamentoForm).getTime();
-                const JANELA_PROIBIDA_MS = 4 * 60 * 60 * 1000;
-                const DOZE_HORAS_MS = 12 * 60 * 60 * 1000;
-                const agora = new Date().getTime();
-
-                const conflito = cacheProgramacoes.find(p => {
-                    if (modoEdicao && p.dt.toUpperCase().trim() === dtAtual) return false;
-                    if (p.placa.toUpperCase().trim() === placa && p.agendamento) {
-                        const tempoExistente = new Date(p.agendamento).getTime();
-                        
-                        if (liberacoesForçadas.includes(placa)) return false;
-                        if ((agora - tempoExistente) > DOZE_HORAS_MS) return false;
-
-                        return Math.abs(tempoForm - tempoExistente) < JANELA_PROIBIDA_MS;
-                    }
-                    return false;
-                });
-
-                if (conflito) {
-                    let horaConflito = formatarDataHoraBr(conflito.agendamento);
-                    monitor.className = "status-display status-danger";
-                    monitor.innerText = `BLOQUEIO: ESTE VEÍCULO JÁ TEM PROGRAMAÇÃO AGENDADA NESSE PERÍODO (${horaConflito}).`;
-                    botao.disabled = true; botao.classList.add("btn-bloqueado"); botao.innerText = "BLOQUEADO: CONFLITO DE HORÁRIO";
-                    return;
-                }
-            }
-
-            if (placa) {
-                monitor.className = "status-display"; 
-                monitor.innerText = `VEÍCULO DISPONÍVEL E CAPACIDADE COMPATÍVEL`;
-                botao.disabled = false; botao.classList.remove("btn-bloqueado"); 
-                botao.innerText = modoEdicao ? "CONFIRMAR ALTERAÇÕES" : "GRAVAR PROGRAMAÇÃO";
-            }
-        }
-
-        function salvarProgramacao() {
-            const hoje = new Date();
-            const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
-            const placaForm = document.getElementById('formPlaca').value.toUpperCase().trim();
-            
-            const payload = {
-                acao: "salvar", data: dataAtual,
-                depositante: document.getElementById('formDepositante').value.toUpperCase(),
-                cliente: document.getElementById('formCliente').value.toUpperCase(),
-                origem: document.getElementById('formOrigem').value.toUpperCase(),
-                destino: document.getElementById('formDestino').value.toUpperCase(),
-                dt: document.getElementById('formDt').value.toUpperCase(),
-                agendamento: document.getElementById('formAgendamento').value,
-                volume: document.getElementById('formVolume').value,
-                notaFiscal: document.getElementById('formNotaFiscal').value.toUpperCase().trim(),
-                placa: placaForm,
-                peso: document.getElementById('formPeso').value,
-                m3: document.getElementById('formM3').value,
-                motorista: document.getElementById('formMotorista').value.toUpperCase(),
-                cpf: document.getElementById('formCpf').value,
-                telefone: document.getElementById('formTelefone').value,
-                tipo: document.getElementById('formTipo').value.toUpperCase(),
-                tipoCarga: document.getElementById('formTipoCarga').value,
-                qtdPallets: document.getElementById('formPallets').value
-            };
-
-            if(!payload.dt || !payload.depositante || !payload.placa) { alert("POR FAVOR, PREENCHA OS CAMPOS ESSENCIAIS (DT, DEPOSITANTE E PLACA)."); return; }
-
-            fetch(URL_API, { method: "POST", body: JSON.stringify(payload) })
-            .then(res => res.json())
-            .then(() => {
-                if(liberacoesForçadas.includes(placaForm)){
-                    liberacoesForçadas = liberacoesForçadas.filter(item => item !== placaForm);
-                    localStorage.setItem("nexus_liberacoes_forcadas", JSON.stringify(liberacoesForçadas));
-                }
-                alert("OPERAÇÃO REALIZADA COM SUCESSO!");
-                cancelarEdicao(); 
-                carregarDadosIniciais();
-            }).catch(() => {
-                alert("OPERAÇÃO PROCESSADA!");
-                cancelarEdicao();
-                carregarDadosIniciais();
-            });
-        }
-
-        /* 🖨️ DOCUMENTO DE IMPRESSÃO */
-        function construirHtmlBlocoOrdem(p) {
-            let agendamentoFormatado = formatarDataHoraBr(p.agendamento);
-            let exibeTipoCarga = p.tipoCarga || "BATIDA";
-            let exibePallets = (exibeTipoCarga === "BATIDA") ? "CARGA BATIDA" : (p.qtdPallets || "0") + " PALLETS";
-            let cpfCondutor = p.cpf || "NÃO INFORMADO";
-            let telCondutor = p.telefone || "NÃO INFORMADO";
-            let exibeNf = p.notaFiscal || p.nota_fiscal || "NÃO INFORMADA";
-            let exibeVolume = p.volume || "0";
-
-            let dataOrdemStr = obterDataSanitizadaSegura(p);
-
-            return `
-                <div class="print-block">
-                    <div class="print-header">
-                        <div style="font-size: 22pt; font-weight: bold; letter-spacing: 2px;">ELLECE LOGÍSTICA E TRANSPORTE</div>
-                        <div class="print-titulo">Ordem de Coleta e Instrução de Transporte</div>
-                        <div style="font-size: 9pt; margin-top: 5px;">Processado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
-                    </div>
-                    <table class="print-table">
-                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">1. CONTROLE E PROGRAMAÇÃO</th></tr>
-                        <tr>
-                            <td style="width: 25%;"><strong>DATA DA PROGRAMAÇÃO:</strong></td>
-                            <td style="width: 25%; font-weight: bold;">${dataOrdemStr}</td>
-                            <td style="width: 25%;"><strong>NÚMERO DA DT:</strong></td>
-                            <td style="width: 25%; font-size: 13pt; font-weight: bold; color: #000;">${p.dt.toUpperCase()}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>DEPOSITANTE/CLIENTE:</strong></td>
-                            <td>${p.depositante.toUpperCase()} / ${p.cliente.toUpperCase()}</td>
-                            <td><strong>NOTA FISCAL (NF):</strong></td>
-                            <td style="font-weight: bold; color: #000;">${exibeNf}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>AGENDAMENTO FLUXO:</strong></td>
-                            <td>${agendamentoFormatado}</td>
-                            <td><strong>ORIGEM COLETA:</strong></td>
-                            <td>${p.origem.toUpperCase()}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>DESTINO / ROTA:</strong></td>
-                            <td colspan="3" style="font-weight: bold;">${p.destino.toUpperCase()}</td>
-                        </tr>
-                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">2. IDENTIFICAÇÃO DO EQUIPAMENTO E CONDUTOR</th></tr>
-                        <tr>
-                            <td><strong>PLACA VEÍCULO:</strong></td>
-                            <td style="font-size: 11pt; font-weight: bold;">${p.placa.toUpperCase()}</td>
-                            <td><strong>TIPO DE VEÍCULO:</strong></td>
-                            <td>${p.tipo.toUpperCase()}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>NOME DO MOTORISTA:</strong></td>
-                            <td colspan="3" style="font-weight: bold;">${p.motorista.toUpperCase()}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>CPF MOTORISTA:</strong></td>
-                            <td>${cpfCondutor}</td>
-                            <td><strong>TELEFONE MOTORISTA:</strong></td>
-                            <td>${telCondutor}</td>
-                        </tr>
-                        <tr><th colspan="4" style="background-color: #f5f5f5; font-weight: bold;">3. DADOS DE CUBAGEM E PESO DA CARGA</th></tr>
-                        <tr>
-                            <td><strong>PESO TOTAL (KG):</strong></td>
-                            <td style="font-weight: bold;">${p.peso} KG</td>
-                            <td><strong>METRAGEM CÚBICA (M³):</strong></td>
-                            <td style="font-weight: bold;">${p.m3} M³</td>
-                        </tr>
-                        <tr>
-                            <td><strong>QUANTIDADE PALLETS / TIPO:</strong></td>
-                            <td colspan="3"><strong>${exibePallets}</strong> (VOLUME INFO: ${exibeVolume} UN)</td>
-                        </tr>
-                    </table>
-                    <div style="margin-top: 25px; font-size: 8.5pt; line-height: 1.4; border: 1px solid #000; padding: 10px;">
-                        <strong>TERMO DE RESPONSABILIDADE:</strong> O condutor declara ciência dos dados operacionais e compromete-se a efetuar o tráfego de acordo com as diretrizes de gerenciamento de risco estabelecidas pela Ellece Logística. Eventuais avarias de pátio devem ser notificadas antes da amarração final da carga.
-                    </div>
-                    <div class="print-assinatura">
-                        <div class="linha-assinatura">Expedição Interna<br>ELLECE LOGÍSTICA</div>
-                        <div class="linha-assinatura">Assinatura do Motorista<br>Concordância de Coleta</div>
-                    </div>
-                </div>`;
-        }
-
-        function generarEImprimirOrdemIndividual() {
-            const dtForm = document.getElementById('formDt').value.toUpperCase().trim();
-            if(!dtForm) { alert("PREENCHA AO MENOS A DT PARA IMPRIMIR AVULSO."); return; }
-
-            const mockObjeto = {
-                data: new Date().toLocaleDateString('pt-BR'),
-                dt: dtForm,
-                depositante: document.getElementById('formDepositante').value || "N/A",
-                cliente: document.getElementById('formCliente').value || "N/A",
-                origem: document.getElementById('formOrigem').value || "N/A",
-                destino: document.getElementById('formDestino').value || "N/A",
-                agendamento: document.getElementById('formAgendamento').value,
-                notaFiscal: document.getElementById('formNotaFiscal').value || "N/A",
-                placa: document.getElementById('formPlaca').value || "N/A",
-                tipo: document.getElementById('formTipo').value || "N/A",
-                motorista: document.getElementById('formMotorista').value || "N/A",
-                cpf: document.getElementById('formCpf').value || "NÃO CONSTA",
-                telefone: document.getElementById('formTelefone').value || "NÃO CONSTA",
-                peso: document.getElementById('formPeso').value || "0",
-                m3: document.getElementById('formM3').value || "0",
-                tipoCarga: document.getElementById('formTipoCarga').value,
-                qtdPallets: document.getElementById('formPallets').value,
-                volume: document.getElementById('formVolume').value || "0"
-            };
-
-            document.getElementById('areaImpressaoOrdem').innerHTML = construirHtmlBlocoOrdem(mockObjeto);
-            window.print();
-        }
-
-        function dispararImpressaoLote() {
-            const deNum = parseInt(document.getElementById('printLoteDe').value);
-            const ateNum = parseInt(document.getElementById('printLoteAte').value);
-
-            if(isNaN(deNum) || isNaN(ateNum)) { alert("POR FAVOR, INFORME O INTERVALO SEQUENCIAL CORRETO (DE / ATÉ)."); return; }
-            if(deNum > ateNum) { alert("O NÚMERO INICIAL NÃO PODE SER MAIOR QUE O NÚMERO FINAL."); return; }
-
-            let htmlAcumulado = ""; let encontrados = 0;
-
-            for (let i = deNum - 1; i < ateNum; i++) {
-                if (cacheFiltradoAtual[i]) {
-                    htmlAcumulado += construirHtmlBlocoOrdem(cacheFiltradoAtual[i]);
-                    encontrados++;
-                }
-            }
-
-            if(encontrados === 0) { alert("NENHUMA PROGRAMAÇÃO FOI ENCONTRADA NESSE INTERVALO DE REFERÊNCIA."); return; }
-            document.getElementById('areaImpressaoOrdem').innerHTML = htmlAcumulado;
-            window.print();
-        }
-
-        function prepararEdicao(dtChave) {
-            const registro = cacheProgramacoes.find(p => p.dt === dtChave);
-            if(!registro) return;
-
-            modoEdicao = true;
-            document.getElementById('formTitulo').innerText = "AJUSTAR PROGRAMAÇÃO (EDITANDO)";
-            document.getElementById('formDt').value = registro.dt.toUpperCase();
-            document.getElementById('formDt').disabled = true;
-            document.getElementById('formDepositante').value = registro.depositante.toUpperCase();
-            document.getElementById('formCliente').value = registro.cliente.toUpperCase();
-            document.getElementById('formOrigem').value = registro.origem.toUpperCase();
-            document.getElementById('formDestino').value = registro.destino.toUpperCase();
-            document.getElementById('formVolume').value = registro.volume;
-            document.getElementById('formNotaFiscal').value = registro.notaFiscal || registro.nota_fiscal || "";
-            document.getElementById('formPeso').value = registro.peso;
-            document.getElementById('formM3').value = registro.m3;
-            document.getElementById('formAgendamento').value = registro.agendamento;
-            document.getElementById('formPlaca').value = registro.placa.toUpperCase();
-            
-            document.getElementById('formTipoCarga').value = registro.tipoCarga || "BATIDA";
-            document.getElementById('formPallets').value = registro.qtdPallets || "0";
-            alternarEstadoCampoPallets();
-
-            selecionarPlacaBusca(registro.placa);
-
-            document.getElementById('btnCancelarEdicao').style.display = "inline-block";
-            document.getElementById('btnTransmitir').innerText = "CONFIRMAR ALTERAÇÕES";
-        }
-
-        function excluirRegistro(dtChave) {
-            if(!confirm(`TEM CERTEZA QUE DESEJA DELETAR PERMANENTEMENTE A DT ${dtChave}?`)) return;
-            fetch(URL_API, { method: "POST", body: JSON.stringify({ acao: "excluir", dt: dtChave }) })
-            .then(() => { alert("DELETADO COM SUCESSO!"); carregarDadosIniciais(); });
-        }
-
-        function cancelarEdicao() {
-            modoEdicao = false; 
-            document.getElementById('formTitulo').innerText = "PROGRAMAÇÃO ATIVA";
-            document.getElementById('formDt').disabled = false; 
-            document.getElementById('btnCancelarEdicao').style.display = "none";
-            
-            document.getElementById('formDt').value = ""; 
-            document.getElementById('formDepositante').value = "";
-            document.getElementById('formCliente').value = ""; 
-            document.getElementById('formOrigem').value = "";
-            document.getElementById('formDestino').value = ""; 
-            document.getElementById('formVolume').value = "";
-            document.getElementById('formNotaFiscal').value = "";
-            document.getElementById('formPeso').value = ""; 
-            document.getElementById('formM3').value = "";
-            document.getElementById('formAgendamento').value = ""; 
-            document.getElementById('formPlaca').value = "";
-            document.getElementById('formTipoCarga').value = "BATIDA";
-            document.getElementById('formPallets').value = "0";
-            alternarEstadoCampoPallets();
-        }
-
-        function filtrarTabela() {
-            const termo = document.getElementById('txtFiltro').value.toUpperCase().trim();
-            const dataFiltroRaw = document.getElementById('filtroData').value;
-            let dataFiltroFormato = "";
-            
-            if(dataFiltroRaw) {
-                const partes = dataFiltroRaw.split("-");
-                dataFiltroFormato = `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-
-            cacheFiltradoAtual = cacheProgramacoes.filter(p => {
-                let dataRegistro = obterDataSanitizadaSegura(p);
-
-                const bateData = !dataFiltroFormato || dataRegistro === dataFiltroFormato;
-                const nfString = p.notaFiscal || p.nota_fiscal || "";
-                const bateTermo = !termo || (
-                    p.placa.toUpperCase().includes(termo) || 
-                    p.cliente.toUpperCase().includes(termo) || 
-                    p.dt.toUpperCase().includes(termo) || 
-                    p.destino.toUpperCase().includes(termo) ||
-                    nfString.toUpperCase().includes(termo)
-                );
-                return bateData && bateTermo;
-            });
-            atualizarTabela(cacheFiltradoAtual);
-            renderizarFrota(); 
-        }
-
-        function atualizarTabela(lista) {
-            const corpo = document.getElementById('corpoTabela');
-            corpo.innerHTML = "";
-            
-            lista.forEach((p, index) => {
-                let numeroReferencia = index + 1; 
-                let exibeTipo = p.tipoCarga || "BATIDA";
-                let exibePallets = (exibeTipo === "BATIDA") ? "BATIDA" : (p.qtdPallets || "0") + " PL";
-                let horaAgendamento = formatarDataHoraBr(p.agendamento);
-                let exibeNf = p.notaFiscal || p.nota_fiscal || "-";
-
-                // Puxa a data passando pela trava anti-inversão
-                let dataVisual = obterDataSanitizadaSegura(p);
-
-                corpo.innerHTML += `<tr>
-                    <td><strong style="color:var(--neon-cyan);">#${numeroReferencia}</strong></td>
-                    <td>${dataVisual}</td>
-                    <td><strong>${horaAgendamento}</strong></td>
-                    <td><strong>${p.dt.toUpperCase()}</strong></td>
-                    <td style="color:var(--neon-blue);"><strong>${exibeNf}</strong></td>
-                    <td>${p.cliente.toUpperCase()}</td>
-                    <td>${p.placa.toUpperCase()}</td>
-                    <td>${p.motorista.toUpperCase()}</td>
-                    <td>${p.origem.toUpperCase()}</td>
-                    <td>${p.destino.toUpperCase()}</td>
-                    <td>${exibeTipo}</td>
-                    <td><strong>${exibePallets}</strong></td>
-                    <td>${p.peso}</td>
-                    <td>${p.m3}</td>
-                    <td>
-                        <button class="btn-action btn-edit" onclick="prepararEdicao('${p.dt}')">EDITAR</button>
-                        <button class="btn-action btn-del" onclick="excluirRegistro('${p.dt}')">EXCLUIR</button>
-                    </td>
-                </tr>`;
-            });
-        }
-
-        function limparCamposAutomaticos() {
-            document.getElementById('formMotorista').value = ""; 
-            document.getElementById('formCpf').value = "";
-            document.getElementById('formTelefone').value = ""; 
-            document.getElementById('formTipo').value = "";
-            limitePesoCaminhao = 0; 
-            limiteM3Caminhao = 0;
-            limitePalletsCaminhao = 0;
-            const botao = document.getElementById('btnTransmitir');
-            botao.disabled = false; 
-            botao.classList.remove("btn-bloqueado");
-            botao.innerText = modoEdicao ? "CONFIRMAR ALTERAÇÕES" : "GRAVAR PROGRAMAÇÃO";
-            document.getElementById('monitorStatus').className = "status-display";
-            document.getElementById('monitorStatus').innerText = "AGUARDANDO LEITURA DE PLACA...";
-        }
-
-        function fecharDiaOperacional() {
-            const dataSelecionadaRaw = document.getElementById('filtroData').value;
-            if(!dataSelecionadaRaw) { alert("SELECIONE UMA DATA NO CAMPO 'FILTRAR POR DATA' PARA FECHAR O DIA."); return; }
-            
-            const partes = dataSelecionadaRaw.split("-");
-            const dataChaveStr = `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-            if(!confirm(`CONFIRMA O FECHAMENTO OPERACIONAL COMPLETO DO DIA ${dataChaveStr}?`)) return;
-
-            let totalCaminhoes = cacheFrota.length;
-            let programados = 0;
-            let manutencao = 0;
-            let travadoCliente = 0;
-            let problemaPessoal = 0;
-            let semDemanda = 0;
-            let disponiveisResidual = 0;
-
-            cacheFrota.forEach(v => {
-                const placaNorm = v.placa.toUpperCase().trim();
-                
-                if (bloqueiosManuais[placaNorm]) {
-                    let motivo = bloqueiosManuais[placaNorm].toUpperCase();
-                    if(motivo.includes("MANUTENÇÃO")) manutencao++;
-                    else if(motivo.includes("TRAVADO")) travadoCliente++;
-                    else if(motivo.includes("PESSOAL")) problemaPessoal++;
-                    else if(motivo.includes("DEMANDA")) semDemanda++;
-                    return;
-                }
-
-                const progNaData = cacheProgramacoes.find(p => {
-                    return p.placa.toUpperCase().trim() === placaNorm && obterDataSanitizadaSegura(p) === dataChaveStr;
-                });
-                if (progNaData) {
-                    programados++;
-                } else {
-                    disponiveisResidual++;
-                }
-            });
-
-            let historicoDias = JSON.parse(localStorage.getItem("nexus_historico_fechamentos")) || {};
-            historicoDias[dataChaveStr] = {
-                data: dataChaveStr,
-                total: totalCaminhoes,
-                programados: programados,
-                manutencao: manutencao,
-                travadoCliente: travadoCliente,
-                problemaPessoal: problemaPessoal,
-                semDemanda: semDemanda,
-                disponiveisResidual: disponiveisResidual,
-                fechadoEm: new Date().toLocaleString('pt-BR')
-            };
-
-            localStorage.setItem("nexus_historico_fechamentos", JSON.stringify(historicoDias));
-            alert(`FECHAMENTO SALVO COM SUCESSO PARA O DIA ${dataChaveStr}!`);
-        }
-
-        function abrirModalHistorico() {
-            const modal = document.getElementById('modalHistorico');
-            const corpo = document.getElementById('corpoHistoricoModal');
-            let historicoDias = JSON.parse(localStorage.getItem("nexus_historico_fechamentos")) || {};
-
-            let chaves = Object.keys(historicoDias).sort((a,b) => {
-                return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
-            });
-
-            if(chaves.length === 0) {
-                corpo.innerHTML = "<p style='color:var(--neon-orange); text-align:center;'>NENHUM DIA FOI FECHADO AINDA.</p>";
-            } else {
-                let htmlBase = `
-                    <div class="input-group" style="margin-bottom: 15px;">
-                        <input type="text" id="txtFiltroModal" placeholder="🔍 Filtrar histórico por data (Ex: 18/06/2026)..." oninput="filtrarCardsModal()" style="padding: 10px; font-size: 0.9rem;">
-                    </div>
-                    <div id="containerCardsModal" style="display:flex; flex-direction:column; gap:12px;">`;
-
-                chaves.forEach(dataKey => {
-                    let h = historicoDias[dataKey];
-                    htmlBase += `
-                        <div class="card-historico-item" data-data="${h.data}" style="background:var(--panel-sec); border: 1px solid #1e2d4a; padding:15px; border-radius:8px;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                                <strong style="color:var(--neon-cyan); font-size:1.05rem;">📆 DATA OPERAÇÃO: ${h.data}</strong>
-                                <span style="font-size:0.75rem; color:#718096;">Fechado em: ${h.fechadoEm}</span>
-                            </div>
-                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; text-align:center; font-size:0.8rem;">
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Frota Total: <strong style="color:#fff;">${h.total}</strong></div>
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Programados: <strong style="color:var(--neon-green);">${h.programados}</strong></div>
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Manutenção: <strong style="color:var(--neon-orange);">${h.manutencao}</strong></div>
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Travado Cliente: <strong style="color:var(--neon-blue);">${h.travadoCliente}</strong></div>
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Problema Pessoal: <strong style="color:var(--neon-red);">${h.problemaPessoal}</strong></div>
-                                <div style="background:#1a263b; padding:6px; border-radius:4px;">Sem Demanda: <strong style="color:#718096;">${h.semDemanda}</strong></div>
-                                <div style="background:#162a2b; padding:6px; border-radius:4px; grid-column: span 3;">Sobra Disponível (Ocioso): <strong style="color:var(--neon-cyan);">${h.disponiveisResidual} carros</strong></div>
-                            </div>
-                        </div>`;
-                });
-                htmlBase += "</div>";
-                corpo.innerHTML = htmlBase;
-            }
-            modal.style.display = 'flex';
-        }
-
-        function filtrarCardsModal() {
-            const termo = document.getElementById('txtFiltroModal').value.trim();
-            const cards = document.querySelectorAll('.card-historico-item');
-            
-            cards.forEach(card => {
-                const dataCard = card.getAttribute('data-data');
-                if (dataCard.includes(termo)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-        }
-
-        function fecharModalHistorico() {
-            document.getElementById('modalHistorico').style.display = 'none';
-        }
-    </script>
+    <div class="bar" style="margin-top:10px;justify-content:space-between">
+        <button type="button" class="btn danger" id="btnCancelProg" style="display:none">Cancelar Programação</button>
+        <div style="display:flex;gap:8px;margin-left:auto">
+            <button type="button" class="btn ghost" id="cancel">Sair</button>
+            <button type="submit" class="btn">Salvar Programação</button>
+        </div>
+    </div>
+</form>
+</dialog>
+
+<script>
+const STATUS=["Disponível","Programado","Produzindo","Manutenção","Improdutivo"];
+const PARADA=["Improdutivo","Manutenção"];
+const PROG=["Programado","Produzindo"];
+const MOTIVOS=["FALTA DE MOTORISTA","QUEBRA MECÂNICA","FALTA DE CARGA","CHUVA/CLIMA","AGUARDANDO DOCUMENTAÇÃO","MANUTENÇÃO PREVENTIVA","ACIDENTE/SINISTRO","OUTRO"];
+
+const ORDER_PERFIS = ["RODOTREM", "CARRETA", "TRUCK", "TOCO", "VUC", ".3/4", "VAN", "FIORINO"];
+
+const FIELDS={
+  placa: ["placa"],
+  motorista: ["motorista"],
+  perfil: ["tipo", "perfil"],
+  status: ["status"],
+  motivo: ["motivo"],
+  obs: ["obs"],
+  cpf: ["cpf"],
+  telefone: ["telefone"],
+  palletsMax: ["palletsmax", "pallets_max"],
+  pesoMax: ["peso_max", "pesomax"],
+  m3Max: ["m3_max", "m3max"]
+};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).toUpperCase();
+const norm=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+
+const getTodayFmt=()=>new Date().toLocaleDateString("pt-BR");
+const today=()=>new Date().toLocaleDateString("sv");
+
+const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const st=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+
+let URL_=ls("frota_url",""), V=[], ROTAS=[], MAP={}, DEMO=false, editing=null;
+let hist=ls("frota_hist",{}), day=today();
+
+/* ---------- API ---------- */
+function sync(s,t){$("#dot").className="dot "+s;$("#syncTxt").textContent=t}
+async function post(p){
+if(!URL_){sync("err","URL não configurada");return}
+sync("busy","Sincronizando…");
+try{
+    const r=await fetch(URL_,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(p)});
+    await r.text(); sync("ok","Planilha atualizada");
+}catch(e){sync("err","Falha ao gravar")}
+}
+
+function mapCols(row){
+MAP={};
+for(const f in FIELDS){
+    MAP[f]=Object.keys(row).find(k=>FIELDS[f].some(n=>norm(k)===norm(n)))||(f[0].toUpperCase()+f.slice(1));
+}
+}
+function normStatus(s){const n=norm(s||"");return STATUS.find(x=>n&&norm(x).startsWith(n.slice(0,5)))||"Disponível"}
+
+function build(rows){
+if(!rows.length) return;
+mapCols(rows[0]||{});
+V=rows.filter(r=>r[MAP.placa]).map(r=>({
+    raw:r,
+    placa:String(r[MAP.placa]).toUpperCase(),
+    motorista:String(r[MAP.motorista]||"").toUpperCase(),
+    perfil:String(r[MAP.perfil]||"OUTROS").toUpperCase(),
+    cpf:r[MAP.cpf]||"",
+    telefone:r[MAP.telefone]||"",
+    palletsMax: parseFloat(r[MAP.palletsMax]) || 0,
+    pesoMax: parseFloat(r[MAP.pesoMax]) || 0,
+    m3Max: parseFloat(r[MAP.m3Max]) || 0,
+    status:normStatus(r[MAP.status]),
+    motivo:String(r[MAP.motivo]||"").toUpperCase(),
+    obs:String(r[MAP.obs]||"").toUpperCase(),
+    progData: null
+}));
+
+const perfisEncontrados = [...new Set(V.map(v => v.perfil))].sort();
+$("#fp").innerHTML = '<option value="">TODOS OS PERFIS</option>' + perfisEncontrados.map(p => `<option value="${p}">${p}</option>`).join("");
+}
+
+async function load(){
+$("#hoje").textContent="Data operacional: " + getTodayFmt();
+if(!URL_){
+    DEMO=true;sync("err","Configure a URL em Configurações");
+    $("#demo").style.display="block";
+    return;
+}
+sync("busy","Lendo planilha…");
+try{
+    const r=await fetch(URL_,{redirect:'follow'});
+    const data = await r.json();
+    const rowsFrota = Array.isArray(data)? data : (data.frota || []);
+    ROTAS = data.rotas || [];
+    $("#dlDestinos").innerHTML = ROTAS.map(rt => `<option value="${esc(rt.destino)}">`).join("");
+
+    build(rowsFrota);
+    DEMO=false;
+    sync("ok","Conectado à planilha");
+}catch(e){DEMO=true;sync("err","Modo demonstração")}
+$("#demo").style.display=DEMO?"block":"none";
+render();
+}
+
+function persist(v, progObj){
+hist[day]=snap();st("frota_hist",hist);st("frota_day",day);
+if(DEMO) return;
+
+if(!v.raw) v.raw={};
+if(MAP.status) v.raw[MAP.status]=v.status;
+if(MAP.motorista) v.raw[MAP.motorista]=v.motorista;
+if(MAP.motivo) v.raw[MAP.motivo]=v.motivo;
+if(MAP.obs) v.raw[MAP.obs]=v.obs;
+
+const payload = { action:"update", placa:v.placa, row:v.raw };
+if(progObj) payload.programacao = progObj;
+
+post(payload);
+}
+
+const snap=()=>V.map(({placa,perfil,motorista,status,motivo,obs})=>({placa,perfil,motorista,status,motivo,obs}));
+
+/* ---------- Programação e Interface ---------- */
+function render(){
+const q=norm($("#q").value), f=$("#fs").value, fp=$("#fp").value;
+
+const baseFrota = V.filter(v => !fp || v.perfil === fp);
+
+const total = baseFrota.length;
+const cntDisp = baseFrota.filter(v=>v.status==="Disponível").length;
+const cntProg = baseFrota.filter(v=>v.status==="Programado"||v.status==="Produzindo").length;
+const cntMan = baseFrota.filter(v=>v.status==="Manutenção").length;
+const cntImp = baseFrota.filter(v=>v.status==="Improdutivo").length;
+
+const calcPct = n => total ? ((n / total) * 100).toFixed(1) + '%' : '0%';
+
+const k=[
+    ["Total da frota", total, "#1e4fbf", ""],
+    ["Disponíveis / Programados", `${cntDisp} / ${cntProg}`, "#16a34a", `(${calcPct(cntDisp)} / ${calcPct(cntProg)})`],
+    ["Em manutenção", `${cntMan}`, "#d97706", `(${calcPct(cntMan)})`],
+    ["Improdutivos", `${cntImp}`, "#dc2626", `(${calcPct(cntImp)})`]
+];
+
+$("#kpis").innerHTML=k.map(([l,n,c,p])=>`<div class="kpi" style="--c:${c}"><b>${n}<small>${p}</small></b><span>${l}</span></div>`).join("");
+
+const list=V.map((v,i)=>({v,i})).filter(({v})=>(!f||v.status===f)&&(!fp||v.perfil===fp)&&norm(v.placa+" "+v.motorista).includes(q));
+
+const profileGroup = {};
+V.forEach(v => { profileGroup[v.perfil] = (profileGroup[v.perfil] || 0) + 1; });
+$("#profileCards").innerHTML = Object.keys(profileGroup).sort().map(p => {
+    const pCnt = profileGroup[p];
+    const isSelected = fp === p ? 'style="border-color:var(--pr);background:#eff6ff"' : '';
+    return `<div class="profile-card" ${isSelected}><span>${p}:</span><b>${pCnt}</b><small>(${calcPct(pCnt)})</small></div>`;
+}).join("");
+
+const g={};
+list.forEach(o=>{
+    let pKey = o.v.perfil.toUpperCase();
+    (g[pKey]??=[]).push(o);
+});
+
+let sortedPerfis = ORDER_PERFIS.filter(p => g[p] || (fp ? fp===p : V.some(v=>v.perfil.toUpperCase()===p)));
+Object.keys(g).forEach(p => { if(!sortedPerfis.includes(p)) sortedPerfis.push(p); });
+
+$("#board").innerHTML=sortedPerfis.map(p=>{
+    const items = g[p] || [];
+    return `<div class="col"><h3>${esc(p)}<span>${items.length}</span></h3>${items.map(({v,i})=>`
+        <div class="vc s-${v.status}" data-i="${i}">
+        <div class="top"><b>${esc(v.placa)}</b><span class="bd">${v.status}</span></div>
+        <div class="mu">${v.motorista?esc(v.motorista):"SEM MOTORISTA"}</div>
+        ${v.palletsMax || v.pesoMax ? `<div class="cap-tag">Cap: ${v.palletsMax?v.palletsMax+' PAL':''} | ${v.pesoMax?v.pesoMax+' KG':''}</div>`:''}
+        ${v.motivo?`<div class="mt">${esc(v.motivo)}</div>`:""}
+        <select data-q="${i}">${STATUS.map(s=>`<option ${s===v.status?"selected":""}>${s.toUpperCase()}</option>`).join("")}</select>
+        </div>`).join("")||'<p class="mu" style="font-size:11px">SEM VEÍCULOS</p>'}</div>`;
+}).join("");
+}
+
+$("#board").addEventListener("click",e=>{
+    if(e.target.closest("select"))return;
+    const c=e.target.closest(".vc");
+    if(c)openEdit(+c.dataset.i);
+});
+
+$("#board").addEventListener("change",e=>{
+    const i=e.target.dataset.q;if(i==null)return;
+    openEdit(+i,e.target.value);
+});
+
+function openEdit(i,statusOverride){
+editing=i;const v=V[i];
+$("#dTitle").textContent=`${v.placa} • ${v.perfil}`;
+$("#vCaps").textContent=`Limites do Veículo: ${v.palletsMax ? 'Pallets Max: ' + v.palletsMax : 'Pallets: N/A'} | ${v.pesoMax ? 'Peso Max: ' + v.pesoMax + ' kg' : 'Peso: N/A'} | ${v.m3Max ? 'M³ Max: ' + v.m3Max : 'M³: N/A'}`;
+
+$("#fMot").value=v.motorista;
+$("#fSt").innerHTML=STATUS.map(s=>`<option>${s.toUpperCase()}</option>`).join("");
+$("#fSt").value=(statusOverride||v.status).toUpperCase();
+$("#fMotivo").innerHTML=MOTIVOS.map(m=>`<option>${m}</option>`).join("");
+$("#fMotivo").value=MOTIVOS.includes(v.motivo)?v.motivo:"OUTRO";
+$("#fObs").value=v.obs;
+
+if(v.progData){
+    $("#pDep").value=v.progData.Depositante; $("#pCli").value=v.progData.Cliente; $("#pOri").value=v.progData.Origem;
+    $("#pDes").value=v.progData.Destino; $("#pRota").value=v.progData.RotaSugerida; $("#pDT").value=v.progData.DT;
+    $("#pVol").value=v.progData.Volume; $("#pPeso").value=v.progData.Peso; $("#pM3").value=v.progData.M3; $("#pPallets").value=v.progData.QtdPallets;
+} else {
+    $("#pDep").value="PANDURATA"; $("#pCli").value=""; $("#pOri").value="GUARULHOS";
+    $("#pDes").value=""; $("#pRota").value=""; $("#pDT").value="";
+    $("#pVol").value=""; $("#pPeso").value=""; $("#pM3").value=""; $("#pPallets").value="";
+}
+
+toggleForm();$("#dlg").showModal();
+}
+
+$("#pDes").oninput=()=>{
+    const dVal = $("#pDes").value.trim().toUpperCase();
+    const achou = ROTAS.find(r => r.destino.toUpperCase() === dVal);
+    $("#pRota").value = achou ? achou.rota : "";
+};
+
+function toggleForm(){
+    const stVal = $("#fSt").value.toUpperCase();
+    const isParada = PARADA.map(x=>x.toUpperCase()).includes(stVal);
+    const isProg = PROG.map(x=>x.toUpperCase()).includes(stVal);
+    
+    $("#secParada").style.display = isParada ? "block" : "none";
+    $("#secProg").style.display = isProg ? "block" : "none";
+    $("#btnCancelProg").style.display = isProg ? "inline-block" : "none";
+}
+$("#fSt").onchange=toggleForm;
+$("#cancel").onclick=()=>{ $("#dlg").close(); render(); };
+
+$("#btnCancelProg").onclick=()=>{
+    if(editing==null) return;
+    if(!confirm("Deseja realmente cancelar a programação deste veículo?")) return;
+    
+    const v = V[editing];
+    const dtAtual = v.progData ? v.progData.DT : "";
+    
+    v.status = "Disponível";
+    v.motivo = "";
+    v.obs = "";
+    v.progData = null;
+    
+    post({ action: "cancel_prog", placa: v.placa, dt: dtAtual });
+    persist(v, null);
+    
+    $("#dlg").close();
+    render();
+};
+
+$("#frm").onsubmit=e=>{
+e.preventDefault();
+if(editing==null) return;
+const v=V[editing],s=$("#fSt").value.toUpperCase();
+
+let progPayload = null;
+
+if(PROG.map(x=>x.toUpperCase()).includes(s)){
+    const inputPallets = parseFloat($("#pPallets").value) || 0;
+    const inputPeso = parseFloat($("#pPeso").value) || 0;
+    const inputM3 = parseFloat($("#pM3").value) || 0;
+
+    if(v.palletsMax > 0 && inputPallets > v.palletsMax){
+        alert(`A quantidade de pallets (${inputPallets}) excede o limite máximo permitido para este veículo (${v.palletsMax} pallets).`);
+        return;
+    }
+    if(v.pesoMax > 0 && inputPeso > v.pesoMax){
+        alert(`O peso informado (${inputPeso} kg) excede a capacidade máxima deste veículo (${v.pesoMax} kg).`);
+        return;
+    }
+    if(v.m3Max > 0 && inputM3 > v.m3Max){
+        alert(`A cubagem informada (${inputM3} m³) excede o limite máximo deste veículo (${v.m3Max} m³).`);
+        return;
+    }
+
+    progPayload = {
+        Data: getTodayFmt(),
+        Depositante: $("#pDep").value.trim().toUpperCase(),
+        Cliente: $("#pCli").value.trim().toUpperCase(),
+        Origem: $("#pOri").value.trim().toUpperCase(),
+        Destino: $("#pDes").value.trim().toUpperCase(),
+        DT: $("#pDT").value.trim().toUpperCase(),
+        RotaSugerida: $("#pRota").value.trim().toUpperCase(),
+        Volume: $("#pVol").value,
+        Peso: $("#pPeso").value,
+        M3: $("#pM3").value,
+        Placa: v.placa,
+        Motorista: $("#fMot").value.trim().toUpperCase(),
+        TipoVeiculo: v.perfil,
+        CPF: v.cpf,
+        Telefone: v.telefone,
+        Agendamento: $("#pAgend").value,
+        TipoCarga: $("#pTipoCarga").value.toUpperCase(),
+        QtdPallets: $("#pPallets").value
+    };
+    v.progData = progPayload;
+}
+
+v.motorista=$("#fMot").value.trim().toUpperCase();
+v.status=STATUS.find(x=>x.toUpperCase()===s)||s;
+
+if(PARADA.map(x=>x.toUpperCase()).includes(s)){
+    v.motivo=$("#fMotivo").value.toUpperCase();
+    v.obs=$("#fObs").value.trim().toUpperCase();
+} else {
+    v.motivo=""; v.obs="";
+}
+
+persist(v, progPayload);
+$("#dlg").close();
+render();
+};
+
+$("#q").oninput=render;
+$("#fs").onchange=render;
+$("#fp").onchange=render;
+
+if($("#fs").options.length<=1){
+    $("#fs").innerHTML+=STATUS.map(s=>`<option>${s.toUpperCase()}</option>`).join("");
+}
+$("#reload").onclick=load;
+
+/* ---------- Histórico e Detalhamento por Perfil ---------- */
+function groupProfilesByStatus(rowList, filterFn){
+    const counts = {};
+    rowList.filter(filterFn).forEach(r => {
+        const perf = (r.perfil || "OUTROS").toUpperCase();
+        counts[perf] = (counts[perf] || 0) + 1;
+    });
+    return Object.entries(counts)
+        .map(([p, n]) => `<span class="prof-tag">${p}: <b>${n}</b></span>`)
+        .join("") || '<span class="mu">-</span>';
+}
+
+function groupProfilesByStatusCSV(rowList, filterFn){
+    const counts = {};
+    rowList.filter(filterFn).forEach(r => {
+        const perf = (r.perfil || "OUTROS").toUpperCase();
+        counts[perf] = (counts[perf] || 0) + 1;
+    });
+    return Object.entries(counts)
+        .map(([p, n]) => `${p}:${n}`)
+        .join(" | ") || "-";
+}
+
+function renderHist(){
+const a=$("#d1").value,b=$("#d2").value;
+const ds=Object.keys(hist).filter(d=>(!a||d>=a)&&(!b||d<=b)).sort().reverse();
+const c=(r,s)=>r.filter(x=>x.status===s).length;
+
+const sums=ds.map(d=>{
+    const r=hist[d];
+    return {
+        d,
+        tot:r.length,
+        prog:c(r,"Programado")+c(r,"Produzindo"),
+        disp:c(r,"Disponível"),
+        prod:c(r,"Produzindo"),
+        imp:c(r,"Improdutivo"),
+        man:c(r,"Manutenção"),
+        progProfiles: groupProfilesByStatus(r, x=>x.status==="Programado"||x.status==="Produzindo"),
+        dispProfiles: groupProfilesByStatus(r, x=>x.status==="Disponível"),
+        manProfiles: groupProfilesByStatus(r, x=>x.status==="Manutenção"),
+        impProfiles: groupProfilesByStatus(r, x=>x.status==="Improdutivo")
+    };
+});
+
+const T=k=>sums.reduce((n,x)=>n+x[k],0),pctVal=T("prog")?Math.round(T("prod")/T("prog")*100):0;
+$("#hk").innerHTML=[["Programados",T("prog"),"#2563eb"],["Produziram",T("prod"),"#16a34a"],["Improdutivos",T("imp"),"#dc2626"],["Em manutenção",T("man"),"#d97706"],["Aproveitamento",pctVal+"%","#1e4fbf"]].map(([l,n,c])=>`<div class="kpi" style="--c:${c}"><b>${n}</b><span>${l}</span></div>`).join("");
+
+$("#hsum").innerHTML=`<tr>
+    <th>Dia</th>
+    <th>Frota</th>
+    <th>Programados (Por Perfil)</th>
+    <th>Disponíveis (Por Perfil)</th>
+    <th>Improdutivos (Por Perfil)</th>
+    <th>Manutenção (Por Perfil)</th>
+</tr>` + (sums.map(x=>`<tr>
+    <td><b>${x.d}</b></td>
+    <td>${x.tot}</td>
+    <td><b>${x.prog}</b><br>${x.progProfiles}</td>
+    <td><b>${x.disp}</b><br>${x.dispProfiles}</td>
+    <td><b>${x.imp}</b><br>${x.impProfiles}</td>
+    <td><b>${x.man}</b><br>${x.manProfiles}</td>
+</tr>`).join("") || `<tr><td colspan="6" class="mu">Nenhum registro no período.</tr>`);
+
+const det=ds.flatMap(d=>hist[d].filter(x=>PARADA.includes(x.status)).map(x=>({d,...x})));
+$("#hdet").innerHTML=`<tr><th>Dia<th>Veículo<th>Perfil<th>Status<th>Motivo<th>Detalhes</tr>`+(det.map(x=>`<tr><td>${x.d}<td>${esc(x.placa)}<td>${esc(x.perfil)}<td>${x.status}<td>${esc(x.motivo)}<td>${esc(x.obs)}</tr>`).join("")||`<tr><td colspan="6" class="mu">Sem paradas registradas no período.</tr>`);
+}
+$("#filtrar").onclick=renderHist;
+
+// Exportar Histórico CSV
+$("#btnExportHist").onclick=()=>{
+    const a=$("#d1").value,b=$("#d2").value;
+    const ds=Object.keys(hist).filter(d=>(!a||d>=a)&&(!b||d<=b)).sort().reverse();
+    if(!ds.length){ alert("Nenhum dado encontrado para exportar no período selecionado."); return; }
+
+    let csvContent = "\uFEFF"; 
+    csvContent += "RESUMO DE PRODUTIVIDADE E PERFIS DIARIO\n";
+    csvContent += "Data;Total Frota;Programados Qtd;Programados Perfis;Disponiveis Qtd;Disponiveis Perfis;Improdutivos Qtd;Improdutivos Perfis;Manutencao Qtd;Manutencao Perfis\n";
+    
+    const c=(r,s)=>r.filter(x=>x.status===s).length;
+    ds.forEach(d => {
+        const r = hist[d];
+        const prog = c(r,"Programado")+c(r,"Produzindo");
+        const disp = c(r,"Disponível");
+        const imp = c(r,"Improdutivo");
+        const man = c(r,"Manutenção");
+
+        const pProg = groupProfilesByStatusCSV(r, x=>x.status==="Programado"||x.status==="Produzindo");
+        const pDisp = groupProfilesByStatusCSV(r, x=>x.status==="Disponível");
+        const pImp = groupProfilesByStatusCSV(r, x=>x.status==="Improdutivo");
+        const pMan = groupProfilesByStatusCSV(r, x=>x.status==="Manutenção");
+
+        csvContent += `${d};${r.length};${prog};"${pProg}";${disp};"${pDisp}";${imp};"${pImp}";${man};"${pMan}"\n`;
+    });
+
+    csvContent += "\n\nDETALHES E JUSTIFICATIVAS DE PARADAS\n";
+    csvContent += "Data;Placa;Perfil;Status;Motivo;Detalhes\n";
+    ds.forEach(d => {
+        hist[d].filter(x=>PARADA.includes(x.status)).forEach(x => {
+            csvContent += `${d};"${x.placa}";"${x.perfil}";"${x.status}";"${x.motivo || ''}";"${x.obs || ''}"\n`;
+        });
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `historico_perfis_produtividade_${a || 'inicio'}_a_${b || 'hoje'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Excluir Histórico Filtrado
+$("#btnDeleteHist").onclick=()=>{
+    const a=$("#d1").value,b=$("#d2").value;
+    const ds=Object.keys(hist).filter(d=>(!a||d>=a)&&(!b||d<=b));
+    if(!ds.length){ alert("Nenhum registro encontrado no período filtrado para excluir."); return; }
+
+    const msg = a || b 
+        ? `Tem certeza que deseja excluir o histórico do período de ${a || 'início'} até ${b || 'hoje'}? (${ds.length} dia(s))` 
+        : "Tem certeza que deseja excluir TODO o histórico de produtividade salvo?";
+
+    if(confirm(msg)){
+        ds.forEach(d => delete hist[d]);
+        st("frota_hist", hist);
+        renderHist();
+        alert("Histórico do período excluído com sucesso!");
+    }
+};
+
+/* ---------- Config e navegação ---------- */
+$("#saveUrl").onclick=()=>{
+    URL_=$("#url").value.trim();
+    st("frota_url",URL_);
+    load();
+};
+$("#sim").onclick=()=>{if(confirm("Fechar "+getTodayFmt()+" e iniciar o próximo dia?")){render();renderHist();}};
+$("#clr").onclick=()=>{if(confirm("Apagar todo o histórico salvo neste navegador?")){hist={};st("frota_hist",hist);renderHist()}};
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".nav,section").forEach(x=>x.classList.remove("on"));
+b.classList.add("on");$("#"+b.dataset.v).classList.add("on");
+if(b.dataset.v==="hist")renderHist();
+if(b.dataset.v==="conf")$("#cols").textContent=Object.keys(MAP).length?"Colunas mapeadas: "+Object.entries(MAP).map(([k,v])=>`${k} → ${v}`).join(", "):"Sem mapeamento.";
+});
+$("#url").value=URL_;
+load();
+</script>
 </body>
 </html>
